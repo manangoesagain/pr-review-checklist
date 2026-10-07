@@ -117,3 +117,5 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - Added `lib/areas.js` for the area names, severity order and sorting — facts, hints and the line check all need them, and the spec's file list had no shared home for them.
 - Built the bookshop demo repo files and `demo/build-demo.js` in slice 1 instead of slice 8 — the samples every test uses must be the demo repo's real diffs, and building the repo with fixed dates gives the same commit ids on any computer, so sample links will work once the repo is pushed. Slice 8 keeps pushing the repo and the evaluation.
 - Added a fifth where-it-came-from tag, **Pattern match**, in `prd.md > The checklist` — basic mode shows pattern hints on their own, and none of the four planned tags described an item found only by a pattern.
+- Built slices 6–8 before the first run on Priyansu's PC instead of after it, so the build wasn't waiting on that run. What the run turns up (prompt, model, anything confusing) gets fixed in place before the final review.
+- The app also reads `.env.txt`, because Windows Notepad often saves `.env` under that name.
