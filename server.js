@@ -5,7 +5,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
-import { checkAi, createAiClient } from './lib/ai.js';
+import { createAiClient, resolveAi } from './lib/ai.js';
 import { isMainModule, loadEnvFile, readSettings } from './lib/env.js';
 import { createGitHubReader } from './lib/github.js';
 import { ReviewError, runReview } from './lib/review.js';
@@ -27,6 +27,7 @@ export function createApp({
   reviewOptions = {},
 } = {}) {
   const app = express();
+  // The startup check can swap in a different model, so routes read app.locals.ai.
   app.locals.ai = ai;
   app.locals.aiProblem = null; // Set by the startup check if the key or model doesn't work.
   app.disable('x-powered-by');
@@ -34,7 +35,8 @@ export function createApp({
   app.use(express.static(path.join(projectFolder, 'public')));
 
   app.get('/api/health', (_req, res) => {
-    res.json({ ai: Boolean(ai), model: ai?.model ?? null, problem: app.locals.aiProblem });
+    const { ai: current, aiProblem } = app.locals;
+    res.json({ ai: Boolean(current), model: current?.model ?? null, problem: aiProblem });
   });
 
   app.post('/api/review', async (req, res) => {
@@ -52,7 +54,7 @@ export function createApp({
 
     try {
       const review = await runReview(req.body ?? {}, {
-        ai,
+        ai: app.locals.ai,
         github,
         claimCheck: settings.claimCheck !== false,
         signal: controller.signal,
@@ -94,7 +96,8 @@ if (isMainModule(import.meta.url)) {
       return;
     }
     console.log(`AI reviewer: checking ${settings.model}...`);
-    const check = await checkAi(app.locals.ai);
+    const check = await resolveAi({ apiKey: settings.nvidiaKey, model: settings.model, log: (line) => console.log(line) });
+    app.locals.ai = check.client;
     app.locals.aiProblem = check.ok ? null : check.message;
     console.log(check.ok ? check.message : `AI reviewer problem: ${check.message}`);
   }).on('error', (error) => {

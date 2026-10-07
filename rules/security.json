@@ -30,13 +30,29 @@
         "docs"
       ],
       "patterns": {
-        "any": "\\b(sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}|nvapi-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{30,})|\\b(api[_-]?key|secret|password|passwd|auth[_-]?token|access[_-]?key|private[_-]?key)\\b[\"']?\\s*[:=]\\s*[\"'][^\"'\\s]{8,}[\"']"
+        "any": "\\b(sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}|nvapi-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{30,})"
       },
-      "flags": "i",
       "unless": "(your|example|placeholder|changeme|dummy|fake|sample|xxxx|<|\\$\\{|process\\.env|os\\.environ|getenv)",
       "why": "Anyone who can read the repo, now or later in its history, can use it.",
       "fix": "Move it to an environment variable (a .env file that git ignores), and replace the key, since it has already been shared.",
-      "comment": "This looks like a real key or password in the code. Could it move to an environment variable? It's also worth replacing the key, since it's now in the history."
+      "comment": "This looks like a real key in the code. Could it move to an environment variable? It's also worth replacing the key, since it's now in the history."
+    },
+    {
+      "id": "password-in-code",
+      "title": "Password or secret written into the code",
+      "severity": "worth-asking",
+      "kinds": [
+        "code",
+        "config"
+      ],
+      "patterns": {
+        "any": "(api[_-]?key|secret|password|passwd|auth[_-]?token|access[_-]?key|private[_-]?key)\\b[\"']?\\s*[:=]\\s*[\"'][^\"'\\s]{8,}[\"']"
+      },
+      "flags": "i",
+      "unless": "(your|example|placeholder|changeme|dummy|fake|sample|test|mock|stub|xxxx|<|\\$\\{|process\\.env|os\\.environ|getenv|\\bsk-|AKIA|ghp_|github_pat_|nvapi-|xox[baprs]-|AIza)",
+      "why": "If this is a real password or secret, anyone who can read the repo, now or later in its history, can use it.",
+      "fix": "If it's real, move it to an environment variable (a .env file that git ignores) and change it, since it has already been shared.",
+      "comment": "Is this a real secret? If so, could it move to an environment variable? It's also worth changing it, since it's now in the history."
     },
     {
       "id": "html-from-values",

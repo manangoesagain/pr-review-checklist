@@ -19,6 +19,8 @@ GitHub lets you read about 20 PRs an hour without signing in (each review makes 
 
 Without an AI key the app runs in **basic mode**: counted facts and pattern checks only. To turn on the AI reviewer, copy `.env.example` to `.env` and paste a free key from [build.nvidia.com](https://build.nvidia.com).
 
+NVIDIA retires models every few months. At startup the app sends the model one tiny request, and if it doesn't answer, the app tries the usual replacements your key can use and tells you which one it picked.
+
 ## Test it
 
 ```bash
@@ -49,11 +51,12 @@ The evaluation runs the AI reviewer several times on both demo PRs and prints a 
 
 ```bash
 node eval/run-eval.js --runs 10
+node eval/run-eval.js --list
 node eval/run-eval.js --model FIRST-MODEL,SECOND-MODEL
 node eval/run-eval.js --fake
 ```
 
-`--model` compares models side by side: use model names exactly as build.nvidia.com lists them, separated by a comma. `--real` also reviews the public PRs listed in `eval/real-prs.json`, for you to judge by eye. `--fake` uses saved AI replies, so it runs without a key.
+`--list` prints the chat models your key can use. `--model` compares models side by side: copy names from that list, separated by a comma. `--real` also reviews the public PRs listed in `eval/real-prs.json`, for you to judge by eye. `--fake` uses saved AI replies, so it runs without a key.
 
 ## How it's planned
 

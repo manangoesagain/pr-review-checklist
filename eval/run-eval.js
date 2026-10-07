@@ -3,16 +3,17 @@
 // found, how many false alarms it raised, and how many items each check hid.
 // Its numbers decide the model and show whether a prompt change helped.
 //
-//   node eval/run-eval.js                      3 runs with AI_MODEL from .env
+//   node eval/run-eval.js                      3 runs with the model the app would use
 //   node eval/run-eval.js --runs 10            more runs, steadier numbers
-//   node eval/run-eval.js --model a,b          compare models (any NVIDIA chat models)
+//   node eval/run-eval.js --list               the chat models your NVIDIA key can use
+//   node eval/run-eval.js --model a,b          compare models (any from --list)
 //   node eval/run-eval.js --real               also review the PRs in eval/real-prs.json
 //   node eval/run-eval.js --fake               use the saved AI replies (checks this script, no key needed)
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createAiClient } from '../lib/ai.js';
+import { MODEL_CHOICES, chatModels, createAiClient, resolveAi } from '../lib/ai.js';
 import { isMainModule, loadEnvFile, readSettings } from '../lib/env.js';
 import { createGitHubReader } from '../lib/github.js';
 import { runReview } from '../lib/review.js';
@@ -151,14 +152,15 @@ export function formatReport(results) {
 }
 
 function parseArgs(argv) {
-  const options = { runs: 3, models: null, real: false, fake: false };
+  const options = { runs: 3, models: null, real: false, fake: false, list: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--runs') options.runs = Math.max(1, Number.parseInt(argv[++i], 10) || 1);
     else if (arg === '--model') options.models = String(argv[++i] ?? '').split(',').map((m) => m.trim()).filter(Boolean);
     else if (arg === '--real') options.real = true;
     else if (arg === '--fake') options.fake = true;
-    else throw new Error(`Unknown option ${arg}. Use --runs N, --model a,b, --real or --fake.`);
+    else if (arg === '--list') options.list = true;
+    else throw new Error(`Unknown option ${arg}. Use --runs N, --model a,b, --list, --real or --fake.`);
   }
   return options;
 }
@@ -170,6 +172,15 @@ async function fakeClients() {
   return (model, pr) => (pr === 'demo'
     ? fakeAi([savedReply('demo-ai-reply'), savedReply('demo-claims-reply')], model)
     : fakeAi([empty], model));
+}
+
+async function printModels(settings) {
+  const listed = chatModels(await createAiClient({ apiKey: settings.nvidiaKey, model: settings.model }).listModels());
+  const usual = MODEL_CHOICES.filter((id) => listed.includes(id));
+  console.log(`Your NVIDIA key lists ${listed.length} chat models. The app tries the starred ones by itself, in this order:`);
+  for (const id of usual) console.log(`  * ${id}`);
+  for (const id of listed.filter((m) => !usual.includes(m))) console.log(`    ${id}`);
+  console.log('\nTo compare two: node eval/run-eval.js --model first-name,second-name');
 }
 
 async function main() {
@@ -187,7 +198,23 @@ async function main() {
       process.exitCode = 1;
       return;
     }
-    models = options.models ?? [settings.model];
+    if (options.list) {
+      await printModels(settings);
+      return;
+    }
+    models = options.models;
+    if (!models) {
+      // The same startup check as the app, so the score is for the model the app would use.
+      console.log(`Checking ${settings.model}...`);
+      const check = await resolveAi({ apiKey: settings.nvidiaKey, model: settings.model, log: (line) => console.log(line) });
+      if (!check.ok) {
+        console.log(check.message);
+        process.exitCode = 1;
+        return;
+      }
+      if (check.switched) console.log(check.message);
+      models = [check.client.model];
+    }
     aiFor = (model) => createAiClient({ apiKey: settings.nvidiaKey, model });
   }
   const realPrs = options.real ? JSON.parse(fs.readFileSync(path.join(projectFolder, 'eval', 'real-prs.json'), 'utf8')).prs ?? [] : [];

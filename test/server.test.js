@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../server.js';
 import { loadSample } from '../lib/review.js';
+import { fakeAi } from './helpers.js';
 
 let server;
 let base;
@@ -127,6 +128,24 @@ test('Cancel on the page stops the review on the server', async () => {
     await assert.rejects(request, { name: 'AbortError' });
     for (let i = 0; i < 50 && aborted === null; i++) await new Promise((r) => setTimeout(r, 20));
     assert.equal(aborted, true, 'the AI request was cancelled too');
+  } finally {
+    local.close();
+  }
+});
+
+test('a model swapped in by the startup check is the one reviews use', async () => {
+  const app = createApp({ settings: { nvidiaKey: 'x', model: 'old/model', githubToken: '', claimCheck: false, port: 0 }, ai: fakeAi([new Error('old model used')], 'old/model') });
+  app.locals.ai = fakeAi(['{"items":[],"clear":["security","tests","breaking","docs","performance"]}'], 'new/model');
+  const local = await new Promise((resolve) => { const s = app.listen(0, '127.0.0.1', () => resolve(s)); });
+  try {
+    const port = local.address().port;
+    const health = await (await fetch(`http://127.0.0.1:${port}/api/health`)).json();
+    assert.equal(health.model, 'new/model');
+    const text = await (await fetch(`http://127.0.0.1:${port}/api/review`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sample: 'clean' }),
+    })).text();
+    const last = JSON.parse(text.trim().split('\n').at(-1));
+    assert.equal(last.review.mode, 'ai');
   } finally {
     local.close();
   }

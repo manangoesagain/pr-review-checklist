@@ -61,8 +61,21 @@ test('secrets: real-looking keys are flagged, placeholders and env lookups are n
   const items = hintsForText(added('config.js',
     'const apiKey = "sk-live-4f9c2a7b1e8d3f6a9c0b2e5d";',
     'const password = "your-password-here";',
-    'const token = process.env.TOKEN;'));
-  assert.deepEqual(keys(items.filter((i) => i.area === 'security')), ['secret-in-code config.js:R1']);
+    'const token = process.env.TOKEN;',
+    'const dbPassword = "Tr0ub4dor&3horse";'));
+  const security = items.filter((i) => i.area === 'security');
+  assert.deepEqual(keys(security), ['secret-in-code config.js:R1', 'password-in-code config.js:R4']);
+  assert.deepEqual(security.map((i) => i.severity), ['must-fix', 'worth-asking']);
+});
+
+test('secrets: test values in test files are not flagged, but a real key format still is', () => {
+  const items = hintsForText(added('worker/test/paddle.test.ts',
+    "const SECRET = 'whsec_test';",
+    "const password = 'hunter2hunter2';",
+    'const key = "AKIAABCDEFGHIJKLMNOP";'));
+  assert.deepEqual(keys(items.filter((i) => i.area === 'security')), ['secret-in-code worker/test/paddle.test.ts:R3']);
+  const code = hintsForText(added('src/paddle.ts', "const SECRET = 'whsec_test';", "const SECRET = 'mock-signing-key';"));
+  assert.deepEqual(keys(code.filter((i) => i.area === 'security')), []);
 });
 
 test('test files: .only and .skip', () => {
