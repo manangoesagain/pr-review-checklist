@@ -1,6 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../server.js';
+import { loadSample } from '../lib/review.js';
 
 let server;
 let base;
@@ -79,4 +80,24 @@ test('errors come back as a plain message', async () => {
 test('a paste over 1 MB is refused politely', async () => {
   const { lines } = await review({ diff: `--- a/a\n+++ b/a\n@@ -1 +1 @@\n+${'x'.repeat(1_100_000)}\n` });
   assert.equal(lines.at(-1).error.code, 'too-big');
+});
+
+test('a PR link streams the fetch step; a bad link gets the plain message', async () => {
+  const sample = loadSample('demo');
+  const github = { readPr: async () => ({ ...sample, fetchedAt: Date.now(), fromCache: false }) };
+  const app = createApp({ settings: { nvidiaKey: '', model: 'm', githubToken: '', claimCheck: true, port: 0 }, github });
+  const local = await new Promise((resolve) => { const s = app.listen(0, '127.0.0.1', () => resolve(s)); });
+  try {
+    const post = async (body) => {
+      const res = await fetch(`http://127.0.0.1:${local.address().port}/api/review`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      return (await res.text()).trim().split('\n').map((l) => JSON.parse(l));
+    };
+    const good = await post({ url: 'https://github.com/manangoesagain/bookshop-demo/pull/1' });
+    assert.deepEqual(good.slice(0, -1), [{ step: 'fetch' }, { step: 'facts' }]);
+    assert.equal(good.at(-1).review.pr.title, 'Add order search');
+    const bad = await post({ url: 'https://github.com/a/b/issues/1' });
+    assert.deepEqual(bad, [{ error: { code: 'not-a-pr', message: 'That doesn\'t look like a pull request link. It should end in /pull/ and a number.' } }]);
+  } finally {
+    local.close();
+  }
 });

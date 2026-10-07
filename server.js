@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import express from 'express';
 import { checkAi, createAiClient } from './lib/ai.js';
 import { loadEnvFile, readSettings } from './lib/env.js';
+import { createGitHubReader } from './lib/github.js';
 import { ReviewError, runReview } from './lib/review.js';
 
 const projectFolder = path.dirname(fileURLToPath(import.meta.url));
@@ -18,7 +19,13 @@ function clientError(error) {
 }
 
 // `ai` is the AI client, or null for basic mode. By default it's made from the key in settings.
-export function createApp({ settings = readSettings(), ai = settings.nvidiaKey ? createAiClient({ apiKey: settings.nvidiaKey, model: settings.model }) : null, reviewOptions = {} } = {}) {
+// `github` reads PRs by link, with the optional token and its own 10-minute cache.
+export function createApp({
+  settings = readSettings(),
+  ai = settings.nvidiaKey ? createAiClient({ apiKey: settings.nvidiaKey, model: settings.model }) : null,
+  github = createGitHubReader({ token: settings.githubToken }),
+  reviewOptions = {},
+} = {}) {
   const app = express();
   app.locals.ai = ai;
   app.locals.aiProblem = null; // Set by the startup check if the key or model doesn't work.
@@ -46,6 +53,7 @@ export function createApp({ settings = readSettings(), ai = settings.nvidiaKey ?
     try {
       const review = await runReview(req.body ?? {}, {
         ai,
+        github,
         claimCheck: settings.claimCheck !== false,
         signal: controller.signal,
         onStep: (step) => send({ step }),

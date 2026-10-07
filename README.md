@@ -13,7 +13,9 @@ npm install
 npm start
 ```
 
-Then open http://localhost:3000 and click **Try a sample**, or paste a diff.
+Then open http://localhost:3000 and paste the link of any public GitHub pull request, click **Try a sample**, or paste a diff from `git diff`.
+
+GitHub lets you read about 20 PRs an hour without signing in (each review makes about three requests, and a repeat within 10 minutes is free). For more, add a `GITHUB_TOKEN` to `.env`.
 
 Without an AI key the app runs in **basic mode**: counted facts and pattern checks only. To turn on the AI reviewer, copy `.env.example` to `.env` and paste a free key from [build.nvidia.com](https://build.nvidia.com).
 

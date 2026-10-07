@@ -51,7 +51,7 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
   Learner check: Try the sample, press **Show** under the list, and read why each item was hidden. Do the reasons make sense to you?
   Commit: `Add claim check, source tags and hidden list`
 
-- [ ] **5. Review a real public PR by its link**
+- [x] **5. Review a real public PR by its link**
   Becomes usable: Pasting a public GitHub PR link reviews that PR, and each `file:line` opens that exact line on GitHub. The same link within 10 minutes comes back instantly. Bad links, private PRs and a used-up GitHub limit each get the PRD's plain message, and "What was checked" lists skipped files.
   Why now: The sample has proven the whole pipeline, so the real input plugs into something that works. Right after this comes the first run on your PC, with real GitHub and real AI together.
   PRD ref: `prd.md > Reviewing a PR link`, `prd.md > States and Boundaries`, `prd.md > Proof and honesty` (What was checked)

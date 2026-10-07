@@ -70,7 +70,7 @@ function showError(error) {
   if (error.code === 'not-a-diff') {
     box.append(el('pre', { text: DIFF_EXAMPLE }));
   }
-  if (error.code === 'pr-not-found' && !state.pasteMode) {
+  if ((error.code === 'pr-not-found' || error.code === 'rate-limit') && !state.pasteMode) {
     box.append(el('button', { type: 'button', class: 'link', text: 'Paste the diff instead', onclick: () => setPasteMode(true) }));
   }
   box.hidden = false;
