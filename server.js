@@ -46,6 +46,7 @@ export function createApp({ settings = readSettings(), ai = settings.nvidiaKey ?
     try {
       const review = await runReview(req.body ?? {}, {
         ai,
+        claimCheck: settings.claimCheck !== false,
         signal: controller.signal,
         onStep: (step) => send({ step }),
         ...reviewOptions,

@@ -41,7 +41,7 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
   Learner check: At the checkpoint on your PC (the AI service is blocked from Claude's cloud workspace), put your NVIDIA key in `.env`, try the sample, and check the pill says "AI reviewer on" and AI items appear.
   Commit: `Add AI review with line check`
 
-- [ ] **4. The claim check tries to disprove AI items, and you can see what was hidden**
+- [x] **4. The claim check tries to disprove AI items, and you can see what was hidden**
   Becomes usable: Every item shows where it came from (Counted fact, Pattern and AI agree, AI confirmed, AI unconfirmed). Under the list, "N AI suggestions hidden" with **Show** lists each hidden item and why.
   Why now: It completes the trust story, the second half of the kernel, before more screens are built around it.
   PRD ref: `prd.md > Proof and honesty`, `prd.md > The checklist`

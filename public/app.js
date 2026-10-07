@@ -327,6 +327,43 @@ function allClearNode(review) {
       el('p', { text: 'Every area was checked. See what was checked below.' }));
 }
 
+function hiddenRef(entry) {
+  if (!entry.file) return '';
+  const match = /^([RL])(\d+)$/.exec(String(entry.ref ?? ''));
+  if (!match) return entry.file;
+  return `${entry.file}:${match[2]}${match[1] === 'L' ? ' (removed line)' : ''}`;
+}
+
+// "3 AI suggestions hidden: 2 couldn't be checked against the code, 1 rejected by the second check. Show"
+function hiddenNode(review) {
+  const hidden = review.hidden ?? [];
+  if (hidden.length === 0) return null;
+  const counts = { line: 0, claim: 0, limit: 0 };
+  for (const entry of hidden) {
+    counts[entry.removedBy === 'claim check' ? 'claim' : entry.removedBy === 'limit' ? 'limit' : 'line']++;
+  }
+  const parts = [
+    counts.line ? `${counts.line} couldn't be checked against the code` : null,
+    counts.claim ? `${counts.claim} rejected by the second check` : null,
+    counts.limit ? `${counts.limit} over the limit` : null,
+  ].filter(Boolean);
+
+  const list = el('ul', { class: 'hidden-list', id: 'hidden-list', hidden: true },
+    hidden.map((entry) => el('li', {},
+      el('span', { class: 'hidden-title', text: entry.title }),
+      hiddenRef(entry) ? el('code', { class: 'hidden-ref', text: hiddenRef(entry) }) : null,
+      el('span', { class: 'hidden-reason', text: `Hidden because ${entry.reason.replace(/[.!?]+$/, '')}.` }))));
+  const toggle = el('button', { type: 'button', class: 'link', 'aria-expanded': 'false', 'aria-controls': 'hidden-list', text: 'Show' });
+  toggle.addEventListener('click', () => {
+    list.hidden = !list.hidden;
+    toggle.textContent = list.hidden ? 'Show' : 'Hide';
+    toggle.setAttribute('aria-expanded', String(!list.hidden));
+  });
+  return el('div', { class: 'hidden-row' },
+    el('p', {}, `${plural(hidden.length, 'AI suggestion')} hidden: ${parts.join(', ')}. `, toggle),
+    list);
+}
+
 function checkedNode(review) {
   const files = review.checked.files;
   const shown = files.slice(0, 50);
@@ -364,6 +401,7 @@ function renderResults(review) {
     el('div', { class: 'chips', role: 'group', 'aria-label': 'Areas' }, review.areas.map(chipNode)),
     el('p', { class: 'filter-note', id: 'filter-note', hidden: true }),
     items.length > 0 ? el('ol', { class: 'items', 'aria-label': 'Checklist' }, items.map((item, i) => itemNode(item, i === 0))) : allClearNode(review),
+    hiddenNode(review),
     checkedNode(review),
     actionBar(),
   ].filter(Boolean));

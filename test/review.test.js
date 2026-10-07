@@ -6,10 +6,12 @@ import { fakeAi, savedReply } from './helpers.js';
 
 const flat = (review) => review.areas.flatMap((a) => a.items);
 const where = (item) => `${item.file}:${item.side}${item.line}`;
+// The review reply, then the claim check's verdicts, as the real AI would send them.
+const demoAi = () => fakeAi([savedReply('demo-ai-reply'), savedReply('demo-claims-reply')]);
 
 test('AI review of the demo PR: all five planted issues, each at the right line', async () => {
   const steps = [];
-  const review = await runReview({ sample: 'demo' }, { ai: fakeAi([savedReply('demo-ai-reply')]), onStep: (s) => steps.push(s) });
+  const review = await runReview({ sample: 'demo' }, { ai: demoAi(), onStep: (s) => steps.push(s) });
   assert.deepEqual(steps, ['facts', 'ai', 'verify']);
   assert.equal(review.mode, 'ai');
   assert.equal(review.model, 'test/model');
@@ -24,7 +26,7 @@ test('AI review of the demo PR: all five planted issues, each at the right line'
 });
 
 test('every item with a line shows the exact code from that line', async () => {
-  const review = await runReview({ sample: 'demo' }, { ai: fakeAi([savedReply('demo-ai-reply')]) });
+  const review = await runReview({ sample: 'demo' }, { ai: demoAi() });
   for (const item of flat(review).filter((i) => i.line)) {
     const hit = item.snippet.find((row) => row.hit);
     assert.equal(hit.line, item.line, item.title);
@@ -33,13 +35,23 @@ test('every item with a line shows the exact code from that line', async () => {
 });
 
 test('made-up references never become items; they are listed as hidden', async () => {
-  const review = await runReview({ sample: 'demo' }, { ai: fakeAi([savedReply('demo-ai-reply')]) });
+  const review = await runReview({ sample: 'demo' }, { ai: demoAi() });
   assert.ok(!flat(review).some((i) => i.file === 'src/payments.ts'));
   assert.deepEqual(review.hidden.map((h) => [h.title, h.reason]), [
     ['Payment amount isn\'t validated', 'its file isn\'t in this PR'],
     ['Empty search isn\'t tested', 'it couldn\'t be matched to the code'],
     ['searchOrders has no test', 'the AI\'s answer was incomplete'],
+    ['Raw SQL built from user input', 'the second check rejected it: The query uses a ? placeholder and passes userId separately, so the value isn\'t built into the SQL.'],
   ]);
+});
+
+test('if the claim check fails, AI items stay, marked unconfirmed, with a note', async () => {
+  const review = await runReview({ sample: 'demo' }, { ai: fakeAi([savedReply('demo-ai-reply'), 'not json']) });
+  assert.equal(review.mode, 'ai');
+  const ai = flat(review).filter((i) => i.origin === 'ai');
+  assert.ok(ai.length > 0 && ai.every((i) => i.confidence === 'unconfirmed'));
+  assert.ok(flat(review).some((i) => i.file === 'src/orders.ts' && i.line === 19), 'nothing was rejected');
+  assert.ok(review.notes.some((n) => /didn't answer/.test(n)));
 });
 
 test('if the AI fails, the basic checklist comes back with the reason', async () => {
