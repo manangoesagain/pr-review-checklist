@@ -22,4 +22,5 @@ npm run render
 ```
 
 That records the desktop clips (1280x720) and the phone clips (540x960, named `-m`),
-plus a still of each scene's first frame. Recording takes about an hour.
+plus a still of each scene's first frame. Each clip is saved twice, as H.264 MP4
+and VP9 WebM; the page plays the WebM where the browser supports it and the MP4 elsewhere. Recording takes about an hour.

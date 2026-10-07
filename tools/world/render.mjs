@@ -50,6 +50,11 @@ for (const seg of segments) {
     '-c:v', 'libx264', '-preset', 'slow', '-crf', mode === 'portrait' ? '23' : '21', '-pix_fmt', 'yuv420p',
     '-g', String(gop), '-keyint_min', String(gop), '-sc_threshold', '0', '-movflags', '+faststart',
     path.join(out, 'vid', `${name}${suffix}.mp4`)]);
+  // A VP9 copy for Chrome, Edge and Firefox, with the same keyframe spacing.
+  execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(dir, '%04d.jpg'), '-an',
+    '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', mode === 'portrait' ? '36' : '34', '-pix_fmt', 'yuv420p',
+    '-g', String(gop), '-keyint_min', String(gop), '-row-mt', '1', '-deadline', 'good', '-cpu-used', '3',
+    path.join(out, 'vid', `${name}${suffix}.webm`)]);
   if (seg.kind === 'dive') {
     execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', path.join(dir, '0000.jpg'), '-quality', '82', path.join(out, `${name}${suffix}.webp`)]);
   }

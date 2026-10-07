@@ -56,11 +56,15 @@
   <script>
     // One section per stop on the PR's trip. Each has a desktop clip (16:9) and a
     // phone clip (9:16) recorded from the same world, plus a still for each.
+    // Every clip comes as VP9 WebM and H.264 MP4; browsers that play VP9 (Chrome,
+    // Edge, Firefox) get the WebM, and the rest get the MP4.
+    const ext = document.createElement('video').canPlayType('video/webm; codecs="vp9"') ? 'webm' : 'mp4';
+    const clip = (name) => `world/vid/${name}.${ext}`;
     const scene = (id) => ({
       still: `world/${id}.webp`,
       stillMobile: `world/${id}-m.webp`,
-      clip: `world/vid/${id}.mp4`,
-      clipMobile: `world/vid/${id}-m.mp4`,
+      clip: clip(id),
+      clipMobile: clip(`${id}-m`),
     });
     const connectors = [1, 2, 3, 4, 5, 6];
     mountScrollWorld(document.getElementById('world'), {
@@ -124,8 +128,8 @@
           },
         },
       ],
-      connectors: connectors.map((n) => `world/vid/conn${n}.mp4`),
-      connectorsMobile: connectors.map((n) => `world/vid/conn${n}-m.mp4`),
+      connectors: connectors.map((n) => clip(`conn${n}`)),
+      connectorsMobile: connectors.map((n) => clip(`conn${n}-m`)),
     });
   </script>
 </body>
