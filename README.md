@@ -25,6 +25,36 @@ Without an AI key the app runs in **basic mode**: counted facts and pattern chec
 npm test
 ```
 
+## The demo repo
+
+**Try a sample** reviews a small bookshop API whose pull request has five planted problems: SQL built from search text, no tests, a changed response shape, a new endpoint missing from the README, and a query inside a loop. A second, clean pull request has none. To put the demo on your own GitHub so its links open:
+
+1. Create an empty public repo called `bookshop-demo` (no README, no license).
+2. Build the demo repo and push its three branches:
+
+   ```bash
+   node demo/build-demo.js ../bookshop-demo
+   cd ../bookshop-demo
+   git remote add origin https://github.com/YOUR-NAME/bookshop-demo.git
+   git push -u origin main order-search isbn-lookup
+   ```
+
+3. On GitHub, open two pull requests into `main`, in this order, and leave them open: `order-search` titled "Add order search" (#1), then `isbn-lookup` titled "Look up a book by ISBN" (#2).
+
+The commits come out identical on every computer, so the saved samples match the real PRs. `node demo/build-demo.js --check` confirms it. If you use a different account, change `DEMO_REPO` in `demo/build-demo.js` and run `npm run samples`.
+
+## Measure it
+
+The evaluation runs the AI reviewer several times on both demo PRs and prints a score: planted problems found, false alarms on the clean PR, and how many AI suggestions each check hid.
+
+```bash
+node eval/run-eval.js --runs 10
+node eval/run-eval.js --model FIRST-MODEL,SECOND-MODEL
+node eval/run-eval.js --fake
+```
+
+`--model` compares models side by side: use model names exactly as build.nvidia.com lists them, separated by a comma. `--real` also reviews the public PRs listed in `eval/real-prs.json`, for you to judge by eye. `--fake` uses saved AI replies, so it runs without a key.
+
 ## How it's planned
 
 The planning documents are in [`devpost/`](devpost): the scope, the product requirements, the technical spec and the build checklist.

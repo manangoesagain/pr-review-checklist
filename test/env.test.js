@@ -34,3 +34,8 @@ test('settings have safe defaults', () => {
   assert.equal(readSettings({ CLAIM_CHECK: 'off', PORT: 'abc' }).claimCheck, false);
   assert.equal(readSettings({ PORT: 'abc' }).port, 3000);
 });
+
+test('isMainModule is false for a file that was only imported', async () => {
+  const { isMainModule } = await import('../lib/env.js');
+  assert.equal(isMainModule(new URL('../server.js', import.meta.url).href), false);
+});

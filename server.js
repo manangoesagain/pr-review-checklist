@@ -3,10 +3,10 @@
 // Keys from .env stay here and never reach the browser.
 
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { checkAi, createAiClient } from './lib/ai.js';
-import { loadEnvFile, readSettings } from './lib/env.js';
+import { isMainModule, loadEnvFile, readSettings } from './lib/env.js';
 import { createGitHubReader } from './lib/github.js';
 import { ReviewError, runReview } from './lib/review.js';
 
@@ -80,7 +80,7 @@ export function createApp({
   return app;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMainModule(import.meta.url)) {
   // Windows Notepad often saves ".env" as ".env.txt", so that name works too.
   if (!loadEnvFile(path.join(projectFolder, '.env')).found && loadEnvFile(path.join(projectFolder, '.env.txt')).found) {
     console.log('Read your settings from .env.txt (Windows added ".txt" to the name). That works fine.');

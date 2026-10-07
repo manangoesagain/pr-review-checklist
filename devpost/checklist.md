@@ -81,7 +81,7 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
   Learner check: Open the app on your PC in dark and light mode and in a narrow window, try a link, the sample and a bad link, and say what feels off.
   Commit: `Finish page design and states`
 
-- [ ] **8. Demo repo, clean PR and the evaluation**
+- [x] **8. Demo repo, clean PR and the evaluation**
   Becomes usable: A small bookshop demo repo, ready for you to push to your GitHub account, with the five-issue PR and the clean PR. `node eval/run-eval.js --runs 10` prints planted issues found, false alarms on the clean PR, and items hidden by each check, and `--model` compares NVIDIA models.
   Why now: It needs the whole pipeline. Its numbers decide the model and tune the prompt before the final review.
   PRD ref: `prd.md > What We're Building`, `prd.md > The checklist` (planted issues), `prd.md > Open Questions`

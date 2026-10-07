@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isMainModule } from '../lib/env.js';
 
 const demoFolder = path.join(path.dirname(fileURLToPath(import.meta.url)), 'bookshop-demo');
 const samplesFolder = path.join(demoFolder, '..', '..', 'samples');
@@ -152,6 +153,14 @@ function buildSamples() {
   }
 }
 
+/** Rebuilds the demo repo in a temporary folder and compares its diffs with the saved samples. */
+export function checkSamples() {
+  return buildSamples().map(({ pr, sample }) => {
+    const saved = fs.readFileSync(path.join(samplesFolder, pr.sample), 'utf8').replace(/\r\n/g, '\n');
+    return { file: pr.sample, matches: saved === JSON.stringify(sample, null, 2) + '\n', headSha: sample.pr.head.sha };
+  });
+}
+
 function main(argv) {
   if (argv[0] === '--samples') {
     for (const { pr, sample } of buildSamples()) {
@@ -161,14 +170,11 @@ function main(argv) {
     return;
   }
   if (argv[0] === '--check') {
-    let same = true;
-    for (const { pr, sample } of buildSamples()) {
-      const saved = fs.readFileSync(path.join(samplesFolder, pr.sample), 'utf8').replace(/\r\n/g, '\n');
-      const fresh = JSON.stringify(sample, null, 2) + '\n';
-      console.log(`samples/${pr.sample}: ${saved === fresh ? 'matches the demo repo' : 'OUT OF DATE, run: node demo/build-demo.js --samples'}`);
-      same &&= saved === fresh;
+    const results = checkSamples();
+    for (const { file, matches } of results) {
+      console.log(`samples/${file}: ${matches ? 'matches the demo repo' : 'OUT OF DATE, run: node demo/build-demo.js --samples'}`);
     }
-    process.exitCode = same ? 0 : 1;
+    process.exitCode = results.every((r) => r.matches) ? 0 : 1;
     return;
   }
   if (!argv[0]) {
@@ -182,6 +188,6 @@ function main(argv) {
   console.log('Branches: main, ' + PULL_REQUESTS.map((pr) => pr.branch).join(', '));
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMainModule(import.meta.url)) {
   main(process.argv.slice(2));
 }
