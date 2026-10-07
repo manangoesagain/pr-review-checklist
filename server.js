@@ -81,7 +81,10 @@ export function createApp({
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  loadEnvFile(path.join(projectFolder, '.env'));
+  // Windows Notepad often saves ".env" as ".env.txt", so that name works too.
+  if (!loadEnvFile(path.join(projectFolder, '.env')).found && loadEnvFile(path.join(projectFolder, '.env.txt')).found) {
+    console.log('Read your settings from .env.txt (Windows added ".txt" to the name). That works fine.');
+  }
   const settings = readSettings();
   const app = createApp({ settings });
   app.listen(settings.port, '127.0.0.1', async () => {
