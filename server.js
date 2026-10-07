@@ -33,6 +33,8 @@ export function createApp({
   app.disable('x-powered-by');
   app.use(express.json({ limit: '2mb' }));
   app.use(express.static(path.join(projectFolder, 'public')));
+  // The landing page is index.html; the app itself lives at /app.
+  app.get('/app', (_req, res) => res.sendFile(path.join(projectFolder, 'public', 'app.html')));
 
   app.get('/api/health', (_req, res) => {
     const { ai: current, aiProblem } = app.locals;

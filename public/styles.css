@@ -1,5 +1,6 @@
 /* PR Review Checklist: dark first, with a matching light theme from the system setting.
-   Every color lives in a variable here, so the two themes stay in step. */
+   Every color lives in a variable here, so the two themes stay in step. The light
+   theme and the area colours match the miniature world on the landing page. */
 
 :root {
   --bg: #0e1116;
@@ -11,9 +12,9 @@
   --text: #e6e9ee;
   --muted: #9aa4b1;
   --faint: #6c7684;
-  --accent: #4b8bff;
-  --accent-hover: #6a9fff;
-  --accent-text: #8db5ff;
+  --accent: #4f7cf0;
+  --accent-hover: #6b92f4;
+  --accent-text: #93b2ff;
   --on-accent: #ffffff;
   --focus: #8db5ff;
 
@@ -29,29 +30,42 @@
   --good: #4fc58f;
   --good-bg: rgba(79, 197, 143, 0.12);
 
+  --area-security: #f07d73;
+  --area-tests: #5cc493;
+  --area-breaking: #e9a94a;
+  --area-docs: #78a3f5;
+  --area-performance: #b08ae6;
+
   --font: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --display: "Segoe UI Variable Display", "SF Pro Rounded", ui-rounded, "Segoe UI", system-ui, sans-serif;
   --mono: "JetBrains Mono", "Cascadia Code", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-  --radius: 8px;
-  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-sm: 8px;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --bg: #f6f7f9;
-    --surface: #ffffff;
-    --surface-2: #f1f3f6;
-    --code-bg: #f7f8fa;
-    --border: #dfe3e9;
-    --border-strong: #c9cfd8;
-    --text: #151a21;
-    --muted: #57616e;
-    --faint: #7a8491;
-    --accent: #2563eb;
-    --accent-hover: #1d4fd7;
-    --accent-text: #1d4fd7;
-    --focus: #2563eb;
+    --bg: #f4eee4;
+    --surface: #fffdf9;
+    --surface-2: #f7f1e7;
+    --code-bg: #faf6ef;
+    --border: #e4d9c7;
+    --border-strong: #d2c4ae;
+    --text: #1f2a37;
+    --muted: #556070;
+    --faint: #737c88;
+    --accent: #2f5fd0;
+    --accent-hover: #264fb3;
+    --accent-text: #2a55bd;
+    --focus: #2f5fd0;
+
+    --area-security: #c4473e;
+    --area-tests: #2e8a5f;
+    --area-breaking: #a66a12;
+    --area-docs: #3b6fd0;
+    --area-performance: #7a4fc0;
 
     --must: #c63a35;
     --must-bg: rgba(198, 58, 53, 0.09);
@@ -64,7 +78,7 @@
     --know-line: rgba(87, 97, 110, 0.09);
     --good: #18794e;
     --good-bg: rgba(24, 121, 78, 0.09);
-    --shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+    --shadow: 0 1px 2px rgba(74, 54, 24, 0.06), 0 6px 18px rgba(74, 54, 24, 0.05);
     color-scheme: light;
   }
 }
@@ -102,7 +116,9 @@ a:hover { text-decoration: underline; }
 .topbar-inner { display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 12px; }
 .wordmark { display: inline-flex; align-items: center; gap: 10px; color: var(--text); font-weight: 650; letter-spacing: -0.01em; }
 .wordmark:hover { text-decoration: none; }
-.wordmark-mark { width: 22px; height: 22px; }
+.wordmark-mark { width: 24px; height: 24px; }
+.topbar-end { display: inline-flex; align-items: center; gap: 14px; }
+.tour-link { font-size: 13.5px; font-weight: 550; }
 .wordmark-mark rect { fill: var(--accent); }
 .wordmark-mark path { fill: none; stroke: var(--on-accent); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -116,12 +132,18 @@ a:hover { text-decoration: underline; }
 .pill.is-basic { color: var(--ask); border-color: color-mix(in srgb, var(--ask) 45%, transparent); background: var(--ask-bg); }
 
 /* Input */
-.promise { font-size: 26px; line-height: 1.25; letter-spacing: -0.02em; font-weight: 650; margin: 16px 0 20px; max-width: 640px; }
+.promise { font-family: var(--display); font-size: 30px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 700; margin: 0 0 20px; max-width: 640px; }
+.hero-art {
+  margin: 4px 0 22px; border-radius: 18px; overflow: hidden; aspect-ratio: 16 / 5;
+  background: #efe6d8 url("world/checklist-close.webp") 70% 25% / cover no-repeat;
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+@media (prefers-color-scheme: dark) { .hero-art { filter: brightness(0.82) saturate(0.95); } }
 main.wrap { padding-top: 24px; }
 .review-form { margin-bottom: 24px; }
 .input-row { display: flex; gap: 8px; }
 .input-row input {
-  flex: 1; min-width: 0; height: 44px; padding: 0 14px;
+  flex: 1; min-width: 0; height: 44px; padding: 0 18px; border-radius: 999px !important;
   background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); border-radius: var(--radius);
   font: 14.5px var(--font);
 }
@@ -137,7 +159,7 @@ textarea {
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  height: 44px; padding: 0 20px; border-radius: var(--radius); border: 1px solid var(--border-strong);
+  height: 44px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--border-strong);
   background: var(--surface); color: var(--text); font: 600 14.5px var(--font); cursor: pointer; white-space: nowrap;
 }
 .btn:hover { background: var(--surface-2); }
@@ -160,7 +182,7 @@ textarea {
 
 /* Start */
 .how { list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.how li { display: flex; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.how li { display: flex; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
 .how strong { display: block; font-weight: 600; margin-bottom: 2px; }
 .how p { margin: 0; color: var(--muted); font-size: 13.5px; }
 .how-num {
@@ -195,7 +217,7 @@ textarea {
 .banner-detail { color: var(--muted); font-size: 13px; margin-top: 2px !important; }
 .banner .btn { flex: none; }
 
-.pr-card { padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 16px; }
+.pr-card { padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 16px; box-shadow: var(--shadow); }
 .pr-title { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -0.01em; overflow-wrap: anywhere; }
 .pr-title .pr-number { color: var(--faint); font-weight: 500; }
 .pr-meta { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
@@ -208,6 +230,13 @@ textarea {
   border: 1px solid var(--border-strong); background: transparent; color: var(--text); font: 550 13px var(--font); cursor: pointer;
 }
 .chip:hover { background: var(--surface-2); }
+/* Each area keeps the colour of its island on the landing page. */
+.chip[data-area]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--area-color, var(--faint)); }
+[data-area="security"] { --area-color: var(--area-security); }
+[data-area="tests"] { --area-color: var(--area-tests); }
+[data-area="breaking"] { --area-color: var(--area-breaking); }
+[data-area="docs"] { --area-color: var(--area-docs); }
+[data-area="performance"] { --area-color: var(--area-performance); }
 
 .chip-count { font-variant-numeric: tabular-nums; font-weight: 650; }
 .chip-state { color: var(--muted); font-weight: 500; }
@@ -219,7 +248,10 @@ textarea {
 .filter-note { font-size: 13.5px; color: var(--muted); margin: -4px 0 12px; }
 
 .items { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-.item { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.item {
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+  box-shadow: inset 4px 0 0 var(--area-color, transparent), var(--shadow); overflow: hidden;
+}
 .item.is-open.sev-must-fix { border-color: color-mix(in srgb, var(--must) 55%, transparent); }
 .item.is-open.sev-worth-asking { border-color: color-mix(in srgb, var(--ask) 55%, transparent); }
 .item-head { display: flex; align-items: center; gap: 10px; padding: 0 14px 0 14px; min-height: 48px; }
@@ -320,7 +352,9 @@ textarea {
 .copy-dialog form { display: flex; justify-content: flex-end; margin-top: 10px; }
 
 @media (max-width: 640px) {
-  .promise { font-size: 21px; margin-top: 8px; }
+  .promise { font-size: 23px; margin-top: 0; }
+  .hero-art { aspect-ratio: 16 / 7; margin-bottom: 18px; }
+  .tour-link { display: none; }
   .how { grid-template-columns: 1fr; }
   .input-row { flex-direction: column; }
   .input-row input { flex: none; }

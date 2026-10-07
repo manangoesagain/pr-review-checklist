@@ -60,6 +60,7 @@ function showView(name) {
   $('#loading-view').hidden = name !== 'loading';
   $('#results-view').hidden = name !== 'results';
   $('#promise').hidden = name === 'results';
+  $('#hero-art').hidden = name !== 'start';
 }
 
 function setBusy(busy) {
@@ -537,4 +538,10 @@ $('#diff-text').addEventListener('keydown', (event) => {
 });
 
 showView('start');
-loadHealth();
+loadHealth().then(() => {
+  // The landing page's "Try the sample" button opens /app?sample=1.
+  if (new URLSearchParams(location.search).has('sample')) {
+    history.replaceState(null, '', location.pathname);
+    startReview({ sample: true });
+  }
+});

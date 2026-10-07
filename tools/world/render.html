@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body><canvas id="c"></canvas>
+<script type="module">
+import { createWorld, segments, TOTAL_SECONDS, FPS } from './world.js';
+const q = new URLSearchParams(location.search);
+const width = Number(q.get('w') || 1280), height = Number(q.get('h') || 720);
+const world = createWorld(document.getElementById('c'), { width, height, portrait: q.get('portrait') === '1' });
+window.frame = (T, quality = 0.92) => { world.renderAt(T); return document.getElementById('c').toDataURL('image/jpeg', quality); };
+window.info = { segments: segments(), TOTAL_SECONDS, FPS };
+window.ready = true;
+</script></body></html>

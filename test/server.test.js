@@ -150,3 +150,11 @@ test('a model swapped in by the startup check is the one reviews use', async () 
     local.close();
   }
 });
+
+test('the landing page is at / and the app at /app', async () => {
+  const landing = await (await fetch(`${base}/`)).text();
+  assert.match(landing, /mountScrollWorld/);
+  const app = await fetch(`${base}/app`);
+  assert.equal(app.status, 200);
+  assert.match(await app.text(), /id="review-form"/);
+});

@@ -1,0 +1,13 @@
+{
+  "name": "pr-review-checklist-world",
+  "private": true,
+  "description": "Records the landing page's miniature-world flight into the scroll clips in public/world.",
+  "type": "module",
+  "scripts": {
+    "render": "node render.mjs desktop ../../public/world && node render.mjs portrait ../../public/world"
+  },
+  "dependencies": {
+    "playwright": "^1.56.0",
+    "three": "^0.186.1"
+  }
+}

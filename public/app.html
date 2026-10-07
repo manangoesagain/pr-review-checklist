@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR Review Checklist</title>
+  <meta name="description" content="Paste a GitHub pull request link and get the checklist a careful senior reviewer would run, with every item proven against the real code.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233b82f6'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="wordmark" href="/app">
+        <svg class="wordmark-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path d="M9 16.5l4.5 4.5L23 11.5"/></svg>
+        PR Review Checklist
+      </a>
+      <span class="topbar-end">
+        <span id="mode-pill" class="pill" hidden></span>
+        <a class="tour-link" href="/">Take the tour</a>
+      </span>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <div class="hero-art" id="hero-art" role="img" aria-label="A giant clipboard with five ticked rows, on a little island at the end of a road"></div>
+    <h1 class="promise" id="promise">Paste a pull request link. Get the checklist a senior reviewer would run.</h1>
+
+    <form id="review-form" class="review-form" novalidate>
+      <div class="input-row" id="link-row">
+        <label class="visually-hidden" for="pr-url">Pull request link</label>
+        <input id="pr-url" name="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"
+               placeholder="https://github.com/owner/repo/pull/123">
+        <button type="submit" class="btn btn-primary" id="review-btn">Review</button>
+      </div>
+      <div class="paste-box" id="paste-box" hidden>
+        <label class="visually-hidden" for="diff-text">Diff to review</label>
+        <textarea id="diff-text" rows="10" spellcheck="false" autocapitalize="off"
+                  placeholder="Paste the output of git diff here"></textarea>
+        <div class="paste-actions">
+          <button type="submit" class="btn btn-primary" id="review-diff-btn">Review diff</button>
+        </div>
+      </div>
+      <p class="form-links">
+        <button type="button" class="link" id="toggle-paste">Paste a diff instead</button>
+        <span class="dot" aria-hidden="true">·</span>
+        <button type="button" class="link" id="try-sample">Try a sample</button>
+      </p>
+      <div class="form-error" id="form-error" role="alert" hidden></div>
+    </form>
+
+    <section id="start-view" class="start-view" aria-label="How it works">
+      <ol class="how">
+        <li><span class="how-num">1</span><div><strong>Paste a link</strong><p>Any public GitHub pull request, or a diff from <code>git diff</code>.</p></div></li>
+        <li><span class="how-num">2</span><div><strong>Get the checklist</strong><p>Security, tests, breaking changes, docs and performance, each pointing at the exact line.</p></div></li>
+        <li><span class="how-num">3</span><div><strong>Copy it to the PR</strong><p>Tick items as you go, then paste the checklist or a ready-made comment.</p></div></li>
+      </ol>
+      <p class="privacy" id="privacy-note">Nothing is saved. When the AI reviewer is on, the changed code is sent to NVIDIA's AI service to be reviewed, so don't paste code you aren't allowed to share.</p>
+    </section>
+
+    <section id="loading-view" class="loading-view" hidden aria-live="polite">
+      <ol class="steps" id="steps"></ol>
+      <p class="loading-meta"><span id="elapsed">0</span> s <span class="dot" aria-hidden="true">·</span> <button type="button" class="link" id="cancel-btn">Cancel</button></p>
+    </section>
+
+    <section id="results-view" class="results-view" hidden aria-live="polite"></section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

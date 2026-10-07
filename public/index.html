@@ -2,68 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>PR Review Checklist</title>
   <meta name="description" content="Paste a GitHub pull request link and get the checklist a careful senior reviewer would run, with every item proven against the real code.">
-  <meta name="color-scheme" content="dark light">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233b82f6'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
-  <script type="module" src="app.js"></script>
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233b6fe0'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="world/start.webp">
+  <style>
+    /* The landing page: a scroll-driven flight through a miniature world, built with
+       the scroll-world engine (public/vendor/scroll-world, MIT). The clips are
+       recorded from tools/world. These tokens match the world's sky and colours. */
+    :root, .sw-root {
+      --sw-bg: #efe6d8;
+      --sw-ink: #1f2a37;
+      --sw-ink-soft: #5b6472;
+      --sw-accent: #2f5fd0;
+      --sw-font-display: "Segoe UI Variable Display", "SF Pro Rounded", ui-rounded, "Segoe UI", system-ui, sans-serif;
+      --sw-font-body: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    body { margin: 0; background: #efe6d8; }
+    .skip {
+      position: fixed; left: 16px; top: 12px; z-index: 100; padding: 10px 16px; border-radius: 999px;
+      background: #1f2a37; color: #fff; font: 600 0.9rem var(--sw-font-body); text-decoration: none;
+      transform: translateY(-200%);
+    }
+    .skip:focus { transform: none; }
+    .sw-brand__mark {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: #2f5fd0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+      box-shadow: 0 6px 14px rgba(47, 95, 208, 0.3);
+    }
+    .sw-topcta, .sw-btn--primary { background: #2f5fd0; }
+    .sw-copy__eyebrow { letter-spacing: 0.12em; }
+    :focus-visible { outline: 3px solid #2f5fd0; outline-offset: 3px; }
+    noscript a { color: #2f5fd0; }
+    @media (max-width: 860px) {
+      .sw-brand__name { font-size: 1rem; }
+      .sw-hint span { display: none; }
+    }
+  </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="wrap topbar-inner">
-      <a class="wordmark" href="/">
-        <svg class="wordmark-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path d="M9 16.5l4.5 4.5L23 11.5"/></svg>
-        PR Review Checklist
-      </a>
-      <span id="mode-pill" class="pill" hidden></span>
-    </div>
-  </header>
+  <a class="skip" href="/app">Skip the tour and open the app</a>
+  <div id="world"></div>
+  <noscript>
+    <p style="font: 1.1rem system-ui; padding: 40px; max-width: 40rem;">
+      PR Review Checklist turns a GitHub pull request into the checklist a senior reviewer would run.
+      <a href="/app">Open the app</a>.
+    </p>
+  </noscript>
 
-  <main class="wrap" id="main">
-    <h1 class="promise" id="promise">Paste a pull request link. Get the checklist a senior reviewer would run.</h1>
-
-    <form id="review-form" class="review-form" novalidate>
-      <div class="input-row" id="link-row">
-        <label class="visually-hidden" for="pr-url">Pull request link</label>
-        <input id="pr-url" name="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"
-               placeholder="https://github.com/owner/repo/pull/123">
-        <button type="submit" class="btn btn-primary" id="review-btn">Review</button>
-      </div>
-      <div class="paste-box" id="paste-box" hidden>
-        <label class="visually-hidden" for="diff-text">Diff to review</label>
-        <textarea id="diff-text" rows="10" spellcheck="false" autocapitalize="off"
-                  placeholder="Paste the output of git diff here"></textarea>
-        <div class="paste-actions">
-          <button type="submit" class="btn btn-primary" id="review-diff-btn">Review diff</button>
-        </div>
-      </div>
-      <p class="form-links">
-        <button type="button" class="link" id="toggle-paste">Paste a diff instead</button>
-        <span class="dot" aria-hidden="true">·</span>
-        <button type="button" class="link" id="try-sample">Try a sample</button>
-      </p>
-      <div class="form-error" id="form-error" role="alert" hidden></div>
-    </form>
-
-    <section id="start-view" class="start-view" aria-label="How it works">
-      <ol class="how">
-        <li><span class="how-num">1</span><div><strong>Paste a link</strong><p>Any public GitHub pull request, or a diff from <code>git diff</code>.</p></div></li>
-        <li><span class="how-num">2</span><div><strong>Get the checklist</strong><p>Security, tests, breaking changes, docs and performance, each pointing at the exact line.</p></div></li>
-        <li><span class="how-num">3</span><div><strong>Copy it to the PR</strong><p>Tick items as you go, then paste the checklist or a ready-made comment.</p></div></li>
-      </ol>
-      <p class="privacy" id="privacy-note">Nothing is saved. When the AI reviewer is on, the changed code is sent to NVIDIA's AI service to be reviewed, so don't paste code you aren't allowed to share.</p>
-    </section>
-
-    <section id="loading-view" class="loading-view" hidden aria-live="polite">
-      <ol class="steps" id="steps"></ol>
-      <p class="loading-meta"><span id="elapsed">0</span> s <span class="dot" aria-hidden="true">·</span> <button type="button" class="link" id="cancel-btn">Cancel</button></p>
-    </section>
-
-    <section id="results-view" class="results-view" hidden aria-live="polite"></section>
-  </main>
-
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script src="vendor/scroll-world/scrub-engine.js"></script>
+  <script>
+    // One section per stop on the PR's trip. Each has a desktop clip (16:9) and a
+    // phone clip (9:16) recorded from the same world, plus a still for each.
+    const scene = (id) => ({
+      still: `world/${id}.webp`,
+      stillMobile: `world/${id}-m.webp`,
+      clip: `world/vid/${id}.mp4`,
+      clipMobile: `world/vid/${id}-m.mp4`,
+    });
+    const connectors = [1, 2, 3, 4, 5, 6];
+    mountScrollWorld(document.getElementById('world'), {
+      brand: { name: 'PR Review Checklist', href: '/' },
+      cta: { label: 'Open the app', href: '/app' },
+      hint: 'Scroll',
+      diveScroll: 1.3,
+      connScroll: 0.9,
+      sections: [
+        {
+          id: 'start', label: 'Start', ...scene('start'), accent: '#2f5fd0', scroll: 1.5, linger: 0.3,
+          eyebrow: 'PR Review Checklist',
+          title: 'A senior dev in your pocket.',
+          body: 'Paste a public GitHub pull request link. Get the checklist a careful reviewer would run, with every item pointing at the exact line of code.',
+          tags: ['file:line proof', 'Copy to the PR', 'Runs locally'],
+        },
+        {
+          id: 'security', label: 'Security', ...scene('security'), accent: '#c4473e', linger: 0.35,
+          eyebrow: 'Checkpoint 1 · Security',
+          title: 'Nothing sneaks through.',
+          body: 'SQL built from user text, keys written into the code and HTML built from values, each flagged at the line that does it.',
+          tags: ['SQL injection', 'Keys in code', 'Unsafe HTML'],
+        },
+        {
+          id: 'tests', label: 'Tests', ...scene('tests'), accent: '#2e8a5f', linger: 0.35,
+          eyebrow: 'Checkpoint 2 · Tests',
+          title: 'Did the tests keep up?',
+          body: 'New code with no new tests, a leftover .only or .skip, and checks that quietly disappeared.',
+          tags: ['Missing tests', '.only and .skip', 'Removed checks'],
+        },
+        {
+          id: 'breaking', label: 'Breaking', ...scene('breaking'), accent: '#a66a12', linger: 0.35,
+          eyebrow: 'Checkpoint 3 · Breaking changes',
+          title: 'Will someone else’s code break?',
+          body: 'Removed exports, changed routes and functions that now take different inputs, found before the people who depend on them find out.',
+          tags: ['Removed exports', 'Changed routes', 'New inputs'],
+        },
+        {
+          id: 'docs', label: 'Docs', ...scene('docs'), accent: '#3b6fd0', linger: 0.35,
+          eyebrow: 'Checkpoint 4 · Docs',
+          title: 'Can the next person find it?',
+          body: 'New endpoints and settings that never made it into the README or .env.example.',
+          tags: ['New endpoints', 'New settings'],
+        },
+        {
+          id: 'performance', label: 'Speed', ...scene('performance'), accent: '#7a4fc0', linger: 0.35,
+          eyebrow: 'Checkpoint 5 · Performance',
+          title: 'Will it stay fast?',
+          body: 'A database query or network call inside a loop, caught before it runs once for every row.',
+          tags: ['Calls in loops', 'Blocking calls'],
+        },
+        {
+          id: 'checklist', label: 'Checklist', ...scene('checklist'), accent: '#2f5fd0', scroll: 1.6, linger: 0.3,
+          eyebrow: 'Proven, not guessed',
+          title: 'Every item, checked twice.',
+          body: 'Each AI suggestion has to point at a real line, then a second pass tries to disprove it. Anything it can’t back up is hidden. Tick items off and paste the list into the PR.',
+          tags: [],
+          cta: {
+            primary: { label: 'Review a pull request', href: '/app' },
+            secondary: { label: 'Try the sample', href: '/app?sample=1' },
+          },
+        },
+      ],
+      connectors: connectors.map((n) => `world/vid/conn${n}.mp4`),
+      connectorsMobile: connectors.map((n) => `world/vid/conn${n}-m.mp4`),
+    });
+  </script>
 </body>
 </html>
