@@ -1,0 +1,71 @@
+{
+  "about": "Saved GitHub API responses for manangoesagain/bookshop-demo pull request #2, built by demo/build-demo.js. Used by \"Try a sample\" and the tests, so they work offline.",
+  "pr": {
+    "number": 2,
+    "title": "Look up a book by ISBN",
+    "body": "Adds GET /v1/books/:isbn to look up one book. The ISBN is checked before the query runs, the query uses a parameter, and the README lists the new endpoint.",
+    "state": "open",
+    "html_url": "https://github.com/manangoesagain/bookshop-demo/pull/2",
+    "user": {
+      "login": "manangoesagain"
+    },
+    "head": {
+      "ref": "isbn-lookup",
+      "sha": "01e82d59de2772fa1b2fd9ac704f06fc407e9eb3",
+      "repo": {
+        "full_name": "manangoesagain/bookshop-demo",
+        "html_url": "https://github.com/manangoesagain/bookshop-demo"
+      }
+    },
+    "base": {
+      "ref": "main",
+      "sha": "9ebc921fa30da30ce5549db870d4ae4de6cb7d69",
+      "repo": {
+        "full_name": "manangoesagain/bookshop-demo",
+        "html_url": "https://github.com/manangoesagain/bookshop-demo"
+      }
+    },
+    "additions": 44,
+    "deletions": 1,
+    "changed_files": 4
+  },
+  "files": [
+    {
+      "sha": "3b84c5130301a70f7100558f258d27a84d89a9c8",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "patch": "@@ -7,6 +7,7 @@ A small, fictional bookshop API. It exists to demo pull request reviews with PR\n | Method | Path | Returns |\n |---|---|---|\n | GET | `/v1/books` | All books, sorted by title |\n+| GET | `/v1/books/:isbn` | One book by its 13-digit ISBN, or 404 |\n | GET | `/v1/orders?userId=1` | A user's orders, each with its items |\n | GET | `/v1/users/:id` | `{ \"id\": 1, \"name\": \"Ada\" }` |\n "
+    },
+    {
+      "sha": "e719382b303250ceb1e37770aeb0d066a934edd4",
+      "filename": "src/app.ts",
+      "status": "modified",
+      "additions": 15,
+      "deletions": 1,
+      "changes": 16,
+      "patch": "@@ -1,5 +1,5 @@\n import express from \"express\";\n-import { listBooks } from \"./books\";\n+import { getBookByIsbn, listBooks, normalizeIsbn } from \"./books\";\n import { getUserOrders } from \"./orders\";\n import { getUser, toUserResponse } from \"./users\";\n \n@@ -10,6 +10,20 @@ app.get(\"/v1/books\", async (_req, res) => {\n   res.json(await listBooks());\n });\n \n+app.get(\"/v1/books/:isbn\", async (req, res) => {\n+  const isbn = normalizeIsbn(req.params.isbn);\n+  if (!isbn) {\n+    res.status(400).json({ error: \"ISBN must be 13 digits\" });\n+    return;\n+  }\n+  const book = await getBookByIsbn(isbn);\n+  if (!book) {\n+    res.status(404).json({ error: \"Book not found\" });\n+    return;\n+  }\n+  res.json(book);\n+});\n+\n app.get(\"/v1/orders\", async (req, res) => {\n   const userId = Number(req.query.userId);\n   if (!Number.isInteger(userId)) {"
+    },
+    {
+      "sha": "209ac7b2804eafe13471eb22a360e32a78c941ec",
+      "filename": "src/books.ts",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14,
+      "patch": "@@ -12,3 +12,17 @@ export async function listBooks(): Promise<Book[]> {\n   const rows = await db.query(\"SELECT id, title, author, isbn, price FROM books ORDER BY title\");\n   return rows as Book[];\n }\n+\n+// ISBN-13: 13 digits, optionally split by hyphens.\n+export function normalizeIsbn(input: string): string | null {\n+  const digits = input.replace(/-/g, \"\");\n+  return /^\\d{13}$/.test(digits) ? digits : null;\n+}\n+\n+export async function getBookByIsbn(isbn: string): Promise<Book | undefined> {\n+  const rows = await db.query(\n+    \"SELECT id, title, author, isbn, price FROM books WHERE isbn = ?\",\n+    [isbn]\n+  );\n+  return rows[0] as Book | undefined;\n+}"
+    },
+    {
+      "sha": "32eef846bd8d98eee0730abb3a2f9a52fb33bcc9",
+      "filename": "test/books.test.ts",
+      "status": "added",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14,
+      "patch": "@@ -0,0 +1,14 @@\n+import { test } from \"node:test\";\n+import assert from \"node:assert/strict\";\n+import { normalizeIsbn } from \"../src/books\";\n+\n+test(\"normalizeIsbn accepts 13 digits with or without hyphens\", () => {\n+  assert.equal(normalizeIsbn(\"9780141439518\"), \"9780141439518\");\n+  assert.equal(normalizeIsbn(\"978-0-14-143951-8\"), \"9780141439518\");\n+});\n+\n+test(\"normalizeIsbn rejects anything else\", () => {\n+  assert.equal(normalizeIsbn(\"12345\"), null);\n+  assert.equal(normalizeIsbn(\"978014143951X\"), null);\n+  assert.equal(normalizeIsbn(\"' OR 1=1 --\"), null);\n+});"
+    }
+  ],
+  "readme": "# Bookshop API\n\nA small, fictional bookshop API. It exists to demo pull request reviews with PR Review Checklist; none of this code runs anywhere real.\n\n## Endpoints\n\n| Method | Path | Returns |\n|---|---|---|\n| GET | `/v1/books` | All books, sorted by title |\n| GET | `/v1/books/:isbn` | One book by its 13-digit ISBN, or 404 |\n| GET | `/v1/orders?userId=1` | A user's orders, each with its items |\n| GET | `/v1/users/:id` | `{ \"id\": 1, \"name\": \"Ada\" }` |\n\n## Run it\n\n```bash\nnpm install\nnpm start\n```\n\nThe API listens on http://localhost:3000. Set `DB_PATH` to use a different database file.\n\n## Test it\n\n```bash\nnpm test\n```\n"
+}

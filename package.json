@@ -1,0 +1,21 @@
+{
+  "name": "pr-review-checklist",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Paste a GitHub pull request link and get the checklist a careful senior reviewer would run, with every item proven against the real code.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js",
+    "samples": "node demo/build-demo.js --samples"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1",
+    "zod": "^4.6.5"
+  }
+}

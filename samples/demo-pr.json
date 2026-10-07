@@ -1,0 +1,71 @@
+{
+  "about": "Saved GitHub API responses for manangoesagain/bookshop-demo pull request #1, built by demo/build-demo.js. Used by \"Try a sample\" and the tests, so they work offline.",
+  "pr": {
+    "number": 1,
+    "title": "Add order search",
+    "body": "Adds a search endpoint for orders, makes the orders query simpler to read, and returns the user's full name.",
+    "state": "open",
+    "html_url": "https://github.com/manangoesagain/bookshop-demo/pull/1",
+    "user": {
+      "login": "manangoesagain"
+    },
+    "head": {
+      "ref": "order-search",
+      "sha": "f5f5de12d78c511a34c1c34c099a2aa27225d90f",
+      "repo": {
+        "full_name": "manangoesagain/bookshop-demo",
+        "html_url": "https://github.com/manangoesagain/bookshop-demo"
+      }
+    },
+    "base": {
+      "ref": "main",
+      "sha": "9ebc921fa30da30ce5549db870d4ae4de6cb7d69",
+      "repo": {
+        "full_name": "manangoesagain/bookshop-demo",
+        "html_url": "https://github.com/manangoesagain/bookshop-demo"
+      }
+    },
+    "additions": 36,
+    "deletions": 11,
+    "changed_files": 4
+  },
+  "files": [
+    {
+      "sha": "358511a10e82a79c9b279b4ff6820df5ab3b33a0",
+      "filename": "src/app.ts",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "patch": "@@ -1,6 +1,7 @@\n import express from \"express\";\n import { listBooks } from \"./books\";\n import { getUserOrders } from \"./orders\";\n+import { searchOrders } from \"./search\";\n import { getUser, toUserResponse } from \"./users\";\n \n export const app = express();\n@@ -19,6 +20,11 @@ app.get(\"/v1/orders\", async (req, res) => {\n   res.json(await getUserOrders(userId));\n });\n \n+app.get(\"/v2/orders/search\", async (req, res) => {\n+  const q = String(req.query.q ?? \"\");\n+  res.json(await searchOrders(q));\n+});\n+\n app.get(\"/v1/users/:id\", async (req, res) => {\n   const user = await getUser(Number(req.params.id));\n   if (!user) {"
+    },
+    {
+      "sha": "e79269c65030ce6a18b211da2e283e778ef7259c",
+      "filename": "src/orders.ts",
+      "status": "modified",
+      "additions": 12,
+      "deletions": 10,
+      "changes": 22,
+      "patch": "@@ -13,17 +13,19 @@ export interface Order {\n   items: OrderItem[];\n }\n \n-// One query for the orders and their items, grouped per order.\n+// Simpler to read: load the orders, then each order's items.\n export async function getUserOrders(userId: number): Promise<Order[]> {\n-  const rows = (await db.query(\n-    `SELECT o.id, o.user_id AS userId, o.title, o.total,\n-            json_group_array(json_object('bookId', i.book_id, 'qty', i.qty)) AS items\n-       FROM orders o\n-       LEFT JOIN order_items i ON i.order_id = o.id\n-      WHERE o.user_id = ?\n-      GROUP BY o.id`,\n+  const orders = (await db.query(\n+    \"SELECT id, user_id AS userId, title, total FROM orders WHERE user_id = ?\",\n     [userId]\n-  )) as Array<Omit<Order, \"items\"> & { items: string }>;\n+  )) as Order[];\n \n-  return rows.map((row) => ({ ...row, items: JSON.parse(row.items) }));\n+  for (const order of orders) {\n+    order.items = (await db.query(\n+      \"SELECT book_id AS bookId, qty FROM order_items WHERE order_id = ?\",\n+      [order.id]\n+    )) as OrderItem[];\n+  }\n+\n+  return orders;\n }"
+    },
+    {
+      "sha": "fa9c6075e7365182a8bf54ad6848f09b93379475",
+      "filename": "src/search.ts",
+      "status": "added",
+      "additions": 17,
+      "deletions": 0,
+      "changes": 17,
+      "patch": "@@ -0,0 +1,17 @@\n+import { db } from \"./db\";\n+import type { Order } from \"./orders\";\n+\n+const MAX_QUERY_LENGTH = 100;\n+\n+/**\n+ * Search a shop's orders by book title.\n+ * Used by GET /v2/orders/search?q=\n+ */\n+export async function searchOrders(q: string): Promise<Order[]> {\n+  if (!q || q.length > MAX_QUERY_LENGTH) {\n+    return [];\n+  }\n+\n+  const rows = await db.query(`SELECT * FROM orders WHERE title LIKE '%${q}%'`);\n+  return rows as Order[];\n+}"
+    },
+    {
+      "sha": "5935f0c8ca441ebc024c024ebf8a0e96c31d2047",
+      "filename": "src/users.ts",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "patch": "@@ -13,5 +13,5 @@ export async function getUser(id: number): Promise<User | undefined> {\n \n // What the API sends back for a user. Email stays private.\n export function toUserResponse(u: User) {\n-  return { id: u.id, name: u.name };\n+  return { user: { id: u.id, fullName: u.name } };\n }"
+    }
+  ],
+  "readme": "# Bookshop API\n\nA small, fictional bookshop API. It exists to demo pull request reviews with PR Review Checklist; none of this code runs anywhere real.\n\n## Endpoints\n\n| Method | Path | Returns |\n|---|---|---|\n| GET | `/v1/books` | All books, sorted by title |\n| GET | `/v1/orders?userId=1` | A user's orders, each with its items |\n| GET | `/v1/users/:id` | `{ \"id\": 1, \"name\": \"Ada\" }` |\n\n## Run it\n\n```bash\nnpm install\nnpm start\n```\n\nThe API listens on http://localhost:3000. Set `DB_PATH` to use a different database file.\n\n## Test it\n\n```bash\nnpm test\n```\n"
+}
