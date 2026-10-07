@@ -208,12 +208,13 @@ textarea {
   border: 1px solid var(--border-strong); background: transparent; color: var(--text); font: 550 13px var(--font); cursor: pointer;
 }
 .chip:hover { background: var(--surface-2); }
-.chip[aria-pressed="true"] { background: var(--surface-2); border-color: var(--accent); }
+
 .chip-count { font-variant-numeric: tabular-nums; font-weight: 650; }
 .chip-state { color: var(--muted); font-weight: 500; }
 .chip.sev-must-fix { border-color: color-mix(in srgb, var(--must) 55%, transparent); background: var(--must-bg); }
 .chip.sev-worth-asking { border-color: color-mix(in srgb, var(--ask) 55%, transparent); background: var(--ask-bg); }
 .chip.is-clear .chip-state { color: var(--good); }
+.chip[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 
 .filter-note { font-size: 13.5px; color: var(--muted); margin: -4px 0 12px; }
 
@@ -269,6 +270,7 @@ textarea {
   padding: 20px; border: 1px solid color-mix(in srgb, var(--good) 40%, transparent); background: var(--good-bg);
   border-radius: var(--radius); margin-bottom: 16px;
 }
+.all-clear.is-basic { border-color: var(--border); background: var(--surface); }
 .all-clear h2 { margin: 0 0 4px; font-size: 17px; }
 .all-clear p { margin: 0; color: var(--muted); font-size: 14px; }
 

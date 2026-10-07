@@ -101,3 +101,33 @@ test('a PR link streams the fetch step; a bad link gets the plain message', asyn
     local.close();
   }
 });
+
+test('Cancel on the page stops the review on the server', async () => {
+  let aborted = null;
+  let started;
+  const chatStarted = new Promise((resolve) => { started = resolve; });
+  const ai = {
+    model: 'test/model',
+    chat: (messages, { signal }) => new Promise((_, reject) => {
+      started();
+      const keepAlive = setTimeout(() => {}, 10_000);
+      signal.addEventListener('abort', () => { clearTimeout(keepAlive); aborted = true; reject(signal.reason); });
+    }),
+    listModels: async () => ['test/model'],
+  };
+  const app = createApp({ settings: { nvidiaKey: 'x', model: 'test/model', githubToken: '', claimCheck: true, port: 0 }, ai });
+  const local = await new Promise((resolve) => { const s = app.listen(0, '127.0.0.1', () => resolve(s)); });
+  try {
+    const controller = new AbortController();
+    const request = fetch(`http://127.0.0.1:${local.address().port}/api/review`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sample: true }), signal: controller.signal,
+    }).then((res) => res.text());
+    await chatStarted;
+    controller.abort();
+    await assert.rejects(request, { name: 'AbortError' });
+    for (let i = 0; i < 50 && aborted === null; i++) await new Promise((r) => setTimeout(r, 20));
+    assert.equal(aborted, true, 'the AI request was cancelled too');
+  } finally {
+    local.close();
+  }
+});

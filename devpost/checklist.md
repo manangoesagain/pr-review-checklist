@@ -71,7 +71,7 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
   Learner check: Copy Markdown on the sample, paste it into any GitHub comment box and click Preview (no need to post). The boxes and links should show.
   Commit: `Add Copy Markdown, Copy comment and Download`
 
-- [ ] **7. The finished look: loading steps, every state, dark and light, phone**
+- [x] **7. The finished look: loading steps, every state, dark and light, phone**
   Becomes usable: The page looks and behaves as the PRD describes: live loading steps with seconds and Cancel, the all-clear state, every error state, the basic-mode banner, dark and light themes, keyboard use, and a phone-width layout.
   Why now: The behavior is settled, so the design work won't be redone.
   PRD ref: `prd.md > Screens and Layout`, `prd.md > Look and Feel`, `prd.md > States and Boundaries`

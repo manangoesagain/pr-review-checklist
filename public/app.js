@@ -272,7 +272,7 @@ function prCard(review) {
       pr ? (prLink ? el('a', { href: prLink, target: '_blank', rel: 'noopener noreferrer', text: pr.repo }) : el('span', { text: pr.repo })) : null,
       el('span', { text: plural(stats.files, 'file') }),
       el('span', {}, el('span', { class: 'add', text: `+${stats.additions}` }), ' ', el('span', { class: 'del', text: `−${stats.deletions}` })),
-      el('span', { text: `reviewed in ${stats.seconds} s` })));
+      el('span', { text: stats.seconds < 1 ? 'reviewed in under a second' : `reviewed in ${stats.seconds} s` })));
 }
 
 function chipNode(area) {
@@ -298,12 +298,15 @@ function setFilter(areaId) {
   const note = $('#filter-note');
   if (!note) return;
   const area = state.review.areas.find((a) => a.id === areaId);
-  if (!area || area.items.length > 0) {
+  if (!area) {
     note.hidden = true;
     return;
   }
   const verdict = area.status === 'clear' ? 'looks good' : 'not checked in basic mode';
-  note.textContent = `${area.name}: ${verdict}${area.note ? ` (${area.note})` : ''}.`;
+  const text = area.items.length > 0
+    ? `Showing ${area.name.toLowerCase()} only. `
+    : `${area.name}: ${verdict}${area.note ? ` (${area.note})` : ''}. `;
+  note.replaceChildren(text, el('button', { type: 'button', class: 'link', text: 'Show all', onclick: () => setFilter(null) }));
   note.hidden = false;
 }
 
@@ -327,7 +330,7 @@ function basicBanner(review) {
 function allClearNode(review) {
   const files = plural(review.stats.reviewed, 'file');
   return review.mode === 'basic'
-    ? el('div', { class: 'all-clear' },
+    ? el('div', { class: 'all-clear is-basic' },
       el('h2', { text: `Nothing flagged by the basic checks in ${files}` }),
       el('p', { text: 'The AI reviewer is off, so areas marked "not checked" still need a look.' }))
     : el('div', { class: 'all-clear' },
