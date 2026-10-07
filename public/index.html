@@ -13,14 +13,14 @@
        the scroll-world engine (public/vendor/scroll-world, MIT). The clips are
        recorded from tools/world. These tokens match the world's sky and colours. */
     :root, .sw-root {
-      --sw-bg: #efe6d8;
+      --sw-bg: #e6f4f9;
       --sw-ink: #1f2a37;
       --sw-ink-soft: #5b6472;
       --sw-accent: #2f5fd0;
       --sw-font-display: "Segoe UI Variable Display", "SF Pro Rounded", ui-rounded, "Segoe UI", system-ui, sans-serif;
       --sw-font-body: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
     }
-    body { margin: 0; background: #efe6d8; }
+    body { margin: 0; background: #e6f4f9; }
     .skip {
       position: fixed; left: 16px; top: 12px; z-index: 100; padding: 10px 16px; border-radius: 999px;
       background: #1f2a37; color: #fff; font: 600 0.9rem var(--sw-font-body); text-decoration: none;
@@ -36,9 +36,27 @@
     .sw-copy__eyebrow { letter-spacing: 0.12em; }
     :focus-visible { outline: 3px solid #2f5fd0; outline-offset: 3px; }
     noscript a { color: #2f5fd0; }
+    /* The words sit on a frosted glass card instead of a cream wash over the left of
+       the picture, so the world stays bright and sharp edge to edge. */
+    .sw-copylayer::before { display: none; }
+    .sw-copy {
+      width: min(40vw, 470px); padding: 30px 32px 32px; border-radius: 26px;
+      background: rgba(255, 255, 255, 0.8);
+      -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 24px 60px rgba(18, 52, 80, 0.2), 0 2px 6px rgba(18, 52, 80, 0.08);
+    }
+    .sw-copy__title, .sw-copy__body { text-shadow: none; }
+    .sw-copy__num { display: none; }
+    .sw-copy__eyebrow { margin-top: 0; }
+    .sw-hint { color: #1f2a37; padding: 10px 14px 8px; border-radius: 18px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
     @media (max-width: 860px) {
       .sw-brand__name { font-size: 1rem; }
       .sw-hint span { display: none; }
+      .sw-copy { padding: 20px 20px 22px; border-radius: 22px; width: auto; right: 46px; }
+      .sw-copy__title { font-size: clamp(1.6rem, 6.6vw, 2.2rem); }
+      .sw-copy__body { margin-top: 10px; font-size: 0.97rem; }
+      .sw-copy__tags { margin-top: 14px; }
     }
   </style>
 </head>
@@ -71,53 +89,55 @@
       brand: { name: 'PR Review Checklist', href: '/' },
       cta: { label: 'Open the app', href: '/app' },
       hint: 'Scroll',
+      // Scroll moves the clips at one steady rate (seconds of flight per screen of
+      // scroll), so speed never jumps where one clip hands over to the next.
       diveScroll: 1.3,
-      connScroll: 0.9,
+      connScroll: 1.3 * 4 / 6,
       sections: [
         {
-          id: 'start', label: 'Start', ...scene('start'), accent: '#2f5fd0', scroll: 1.5, linger: 0.3,
+          id: 'start', label: 'Start', ...scene('start'), accent: '#2f5fd0',
           eyebrow: 'PR Review Checklist',
           title: 'A senior dev in your pocket.',
           body: 'Paste a public GitHub pull request link. Get the checklist a careful reviewer would run, with every item pointing at the exact line of code.',
           tags: ['file:line proof', 'Copy to the PR', 'Runs locally'],
         },
         {
-          id: 'security', label: 'Security', ...scene('security'), accent: '#c4473e', linger: 0.35,
+          id: 'security', label: 'Security', ...scene('security'), accent: '#c4473e',
           eyebrow: 'Checkpoint 1 · Security',
           title: 'Nothing sneaks through.',
           body: 'SQL built from user text, keys written into the code and HTML built from values, each flagged at the line that does it.',
           tags: ['SQL injection', 'Keys in code', 'Unsafe HTML'],
         },
         {
-          id: 'tests', label: 'Tests', ...scene('tests'), accent: '#2e8a5f', linger: 0.35,
+          id: 'tests', label: 'Tests', ...scene('tests'), accent: '#2e8a5f',
           eyebrow: 'Checkpoint 2 · Tests',
           title: 'Did the tests keep up?',
           body: 'New code with no new tests, a leftover .only or .skip, and checks that quietly disappeared.',
           tags: ['Missing tests', '.only and .skip', 'Removed checks'],
         },
         {
-          id: 'breaking', label: 'Breaking', ...scene('breaking'), accent: '#a66a12', linger: 0.35,
+          id: 'breaking', label: 'Breaking', ...scene('breaking'), accent: '#a66a12',
           eyebrow: 'Checkpoint 3 · Breaking changes',
           title: 'Will someone else’s code break?',
           body: 'Removed exports, changed routes and functions that now take different inputs, found before the people who depend on them find out.',
           tags: ['Removed exports', 'Changed routes', 'New inputs'],
         },
         {
-          id: 'docs', label: 'Docs', ...scene('docs'), accent: '#3b6fd0', linger: 0.35,
+          id: 'docs', label: 'Docs', ...scene('docs'), accent: '#3b6fd0',
           eyebrow: 'Checkpoint 4 · Docs',
           title: 'Can the next person find it?',
           body: 'New endpoints and settings that never made it into the README or .env.example.',
           tags: ['New endpoints', 'New settings'],
         },
         {
-          id: 'performance', label: 'Speed', ...scene('performance'), accent: '#7a4fc0', linger: 0.35,
+          id: 'performance', label: 'Speed', ...scene('performance'), accent: '#7a4fc0',
           eyebrow: 'Checkpoint 5 · Performance',
           title: 'Will it stay fast?',
           body: 'A database query or network call inside a loop, caught before it runs once for every row.',
           tags: ['Calls in loops', 'Blocking calls'],
         },
         {
-          id: 'checklist', label: 'Checklist', ...scene('checklist'), accent: '#2f5fd0', scroll: 1.6, linger: 0.3,
+          id: 'checklist', label: 'Checklist', ...scene('checklist'), accent: '#2f5fd0',
           eyebrow: 'Proven, not guessed',
           title: 'Every item, checked twice.',
           body: 'Each AI suggestion has to point at a real line, then a second pass tries to disprove it. Anything it can’t back up is hidden. Tick items off and paste the list into the PR.',

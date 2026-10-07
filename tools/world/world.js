@@ -8,13 +8,10 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { HorizontalTiltShiftShader } from 'three/addons/shaders/HorizontalTiltShiftShader.js';
-import { VerticalTiltShiftShader } from 'three/addons/shaders/VerticalTiltShiftShader.js';
 
 // ---- timeline ---------------------------------------------------------------
-export const FPS = 24;
+export const FPS = 30;
 export const DIVE_SECONDS = 6;
 export const CONNECTOR_SECONDS = 4;
 export const SCENES = ['start', 'security', 'tests', 'breaking', 'docs', 'performance', 'checklist'];
@@ -38,24 +35,25 @@ export const TOTAL_SECONDS = segments().at(-1).start + DIVE_SECONDS;
 
 // ---- palette ----------------------------------------------------------------
 export const PALETTE = {
-  sky: '#efe6d8',
-  water: '#9fcfc8',
-  waterDeep: '#86bdb6',
-  grass: '#a9c98a',
-  grassDark: '#8fb574',
-  earth: '#c9a27e',
-  road: '#ecdcbf',
-  wall: '#f6efe4',
-  roof: '#d9826b',
-  wood: '#b98a62',
-  stone: '#cfc7bb',
-  dark: '#3a3f4b',
+  skyTop: '#5fa8f5',
+  sky: '#ffe3c4',
+  water: '#3fb0c9',
+  waterDeep: '#2b8db0',
+  grass: '#8cd068',
+  grassDark: '#64b552',
+  earth: '#e6a86f',
+  road: '#fff3dc',
+  wall: '#fffaf1',
+  roof: '#ff7b5c',
+  wood: '#c4844f',
+  stone: '#ddd4c6',
+  dark: '#33384a',
   brand: '#3b6fe0',
-  security: '#e0685f',
-  tests: '#4fb286',
-  breaking: '#e8a33d',
-  docs: '#5b8def',
-  performance: '#9b6fd6',
+  security: '#ff5f5a',
+  tests: '#2fc58c',
+  breaking: '#ffad1f',
+  docs: '#4d8dff',
+  performance: '#a36bff',
   white: '#fffaf2',
 };
 
@@ -159,7 +157,7 @@ function island(group, c, r, seed) {
 function tree(group, x, z, random, scale = 1) {
   const s = scale * (0.75 + random() * 0.5);
   group.add(mesh(new THREE.CylinderGeometry(0.09 * s, 0.13 * s, 0.6 * s, 6), clay(PALETTE.wood), { x, y: TOP + 0.3 * s, z }));
-  const tone = random() > 0.5 ? PALETTE.grassDark : '#7fa86a';
+  const tone = random() > 0.5 ? PALETTE.grassDark : '#4fa45a';
   if (random() > 0.45) {
     group.add(mesh(new THREE.ConeGeometry(0.55 * s, 1.3 * s, 7), clay(tone), { x, y: TOP + 1.15 * s, z, ry: random() * 3 }));
   } else {
@@ -635,9 +633,12 @@ function parcelU(T) {
         const drift = 0.006;
         return seg.index === SCENES.length - 1 ? prev : prev - drift + drift * 2 * local;
       }
+      // Leave and arrive at the same creeping speed as the stops, so it never jolts.
       const from = STOPS[seg.index] + 0.006;
       const to = STOPS[seg.index + 1] - 0.006;
-      return lerp(from, to, smoother(local));
+      const v = (0.012 / DIVE_SECONDS) * seg.seconds;
+      const x = local;
+      return (2 * x ** 3 - 3 * x ** 2 + 1) * from + (x ** 3 - 2 * x ** 2 + x) * v + (-2 * x ** 3 + 3 * x ** 2) * to + (x ** 3 - x ** 2) * v;
     }
   }
   return STOPS.at(-1);
@@ -650,11 +651,6 @@ function spherical(focus, dist, elev, az) {
     focus.y + dist * Math.sin(elev),
     focus.z + dist * Math.cos(elev) * Math.cos(az),
   );
-}
-
-function bezier(a, b, c, t) {
-  const u = 1 - t;
-  return a.clone().multiplyScalar(u * u).add(b.clone().multiplyScalar(2 * u * t)).add(c.clone().multiplyScalar(t * t));
 }
 
 // The close-up angle for each scene is picked automatically: of the angles near the
@@ -702,24 +698,124 @@ function cameraPoses(focuses, portrait, blockers) {
   });
 }
 
+// The camera follows one smooth path through every scene instead of stopping at each
+// clip boundary: key points (high above an island, partway down, the close-up, and the
+// hop to the next island) are joined by a centripetal Catmull-Rom curve, and time maps to
+// the curve with a monotone cubic, so speed changes gently and never drops to zero
+// between clips. The clips are still cut from this one path, so their seams match.
+let path = null;
+function cameraPath(poses) {
+  if (path && path.poses === poses) return path;
+  const pos = [];
+  const look = [];
+  const knots = [];
+  const list = segments();
+  poses.forEach((p, i) => {
+    const dive = list.find((s) => s.kind === 'dive' && s.index === i);
+    pos.push(p.high, p.high.clone().lerp(p.low, 0.55).add(v3(0, 2.2, 0)), p.low);
+    look.push(p.centre, p.centre.clone().lerp(p.focus, 0.8), p.focus);
+    knots.push(dive.start, dive.start + dive.seconds * 0.5, dive.start + dive.seconds);
+    const conn = list.find((s) => s.kind === 'conn' && s.index === i);
+    if (conn) {
+      const b = poses[i + 1];
+      pos.push(p.low.clone().lerp(b.high, 0.5).setY(Math.max(p.low.y, b.high.y) + 4));
+      look.push(p.focus.clone().lerp(b.centre, 0.5));
+      knots.push(conn.start + conn.seconds * 0.5);
+    }
+  });
+  path = {
+    poses,
+    pos: new THREE.CatmullRomCurve3(pos, false, 'centripetal'),
+    look: new THREE.CatmullRomCurve3(look, false, 'centripetal'),
+    knots,
+    slopes: monotoneSlopes(knots),
+  };
+  return path;
+}
+
+// Fritsch-Carlson slopes for the time -> key point index curve (index k at knots[k]).
+function monotoneSlopes(t) {
+  const n = t.length;
+  const d = [];
+  for (let k = 0; k < n - 1; k++) d.push(1 / (t[k + 1] - t[k]));
+  const m = [d[0]];
+  for (let k = 1; k < n - 1; k++) m.push((2 * d[k - 1] * d[k]) / (d[k - 1] + d[k]));
+  m.push(d[n - 2]);
+  // Ease in at the very start and out at the very end of the whole flight.
+  m[0] = 0;
+  m[n - 1] = 0;
+  return m;
+}
+
+function pathIndex(T, { knots, slopes }) {
+  const n = knots.length;
+  if (T <= knots[0]) return 0;
+  if (T >= knots[n - 1]) return n - 1;
+  let k = 0;
+  while (T > knots[k + 1]) k++;
+  const h = knots[k + 1] - knots[k];
+  const x = (T - knots[k]) / h;
+  const h00 = 2 * x ** 3 - 3 * x ** 2 + 1, h10 = x ** 3 - 2 * x ** 2 + x;
+  const h01 = -2 * x ** 3 + 3 * x ** 2, h11 = x ** 3 - x ** 2;
+  return h00 * k + h10 * h * slopes[k] + h01 * (k + 1) + h11 * h * slopes[k + 1];
+}
+
 /** Camera position and look target at global time T. */
 function cameraAt(T, poses) {
-  const list = segments();
-  let seg = list.at(-1);
-  for (const s of list) if (T < s.start + s.seconds) { seg = s; break; }
-  const local = clamp((T - seg.start) / seg.seconds);
-  if (seg.kind === 'dive') {
-    const p = poses[seg.index];
-    const k = smoother(local);
-    // Descend on a curve that swings around the scene a little.
-    const mid = p.high.clone().lerp(p.low, 0.5).add(v3(0, 4, 0));
-    return { pos: bezier(p.high, mid, p.low, k), target: p.centre.clone().lerp(p.focus, smooth(local * 1.2)) };
+  const conn = segments().find((s) => s.kind === 'conn' && T > s.start && T < s.start + s.seconds);
+  return conn ? bridgeAt(T, conn, poses) : pathAt(T, poses);
+}
+
+function pathAt(T, poses) {
+  const p = cameraPath(poses);
+  const u = pathIndex(T, p) / (p.knots.length - 1);
+  return { pos: p.pos.getPoint(u), target: p.look.getPoint(u) };
+}
+
+// Between two islands the camera flies its own arc, joined to the dives on either side
+// with the same position, speed and direction, so it never jolts at a clip seam.
+const bridges = new Map();
+function bridgeAt(T, seg, poses) {
+  let b = bridges.get(seg.index);
+  if (!b || b.poses !== poses) {
+    const a = seg.start;
+    const z = seg.start + seg.seconds;
+    const h = 1e-3;
+    const D = seg.seconds;
+    const A = pathAt(a, poses), A0 = pathAt(a - h, poses);
+    const Z = pathAt(z, poses), Z1 = pathAt(z + h, poses);
+    const vA = A.pos.clone().sub(A0.pos).divideScalar(h);
+    const vZ = Z1.pos.clone().sub(Z.pos).divideScalar(h);
+    const top = Math.max(A.pos.y, Z.pos.y) + 2;
+    const ctrl = [
+      A.pos,
+      A.pos.clone().addScaledVector(vA, D / 5),
+      A.pos.clone().lerp(Z.pos, 0.4).setY(top),
+      A.pos.clone().lerp(Z.pos, 0.6).setY(top),
+      Z.pos.clone().addScaledVector(vZ, -D / 5),
+      Z.pos,
+    ];
+    const tA = A.target.clone().sub(A0.target).divideScalar(h).multiplyScalar(D);
+    const tZ = Z1.target.clone().sub(Z.target).divideScalar(h).multiplyScalar(D);
+    b = { poses, ctrl, look: [A.target, tA, Z.target, tZ] };
+    bridges.set(seg.index, b);
   }
-  const a = poses[seg.index];
-  const b = poses[seg.index + 1];
-  const k = smoother(local);
-  const mid = a.low.clone().lerp(b.high, 0.5).setY(Math.max(a.low.y, b.high.y) + 9);
-  return { pos: bezier(a.low, mid, b.high, k), target: a.focus.clone().lerp(b.centre, smoother(local)) };
+  const x = (T - seg.start) / seg.seconds;
+  return { pos: bezier5(b.ctrl, x), target: hermite(...b.look, x) };
+}
+
+function bezier5(p, t) {
+  const u = 1 - t;
+  const w = [u ** 5, 5 * u ** 4 * t, 10 * u ** 3 * t ** 2, 10 * u ** 2 * t ** 3, 5 * u * t ** 4, t ** 5];
+  const out = v3(0, 0, 0);
+  p.forEach((q, k) => out.addScaledVector(q, w[k]));
+  return out;
+}
+
+function hermite(p0, m0, p1, m1, x) {
+  const x2 = x * x, x3 = x2 * x;
+  return p0.clone().multiplyScalar(2 * x3 - 3 * x2 + 1).addScaledVector(m0, x3 - 2 * x2 + x)
+    .addScaledVector(p1, -2 * x3 + 3 * x2).addScaledVector(m1, x3 - x2);
 }
 
 // ---- clouds and water ---------------------------------------------------------
@@ -738,7 +834,19 @@ function buildClouds(group) {
     clouds.push(cloud);
     group.add(cloud);
   }
-  return (T) => clouds.forEach((cl) => { cl.position.x = cl.userData.x + T * cl.userData.speed; });
+  // While flying between islands, a cloud close to the camera fades out instead of
+  // filling the screen. The fade is zero at each clip seam, so the seams still match.
+  return (T, eye) => {
+    const seg = segments().find((s) => s.kind === 'conn' && T > s.start && T < s.start + s.seconds);
+    const away = seg ? Math.sin(Math.PI * (T - seg.start) / seg.seconds) : 0;
+    clouds.forEach((cl) => {
+      cl.position.x = cl.userData.x + T * cl.userData.speed;
+      const near = clamp((cl.position.distanceTo(eye) - 6) / 10);
+      const opacity = 1 - away * (1 - near);
+      cl.visible = opacity > 0.02;
+      cl.traverse((o) => { if (o.material) { o.material.opacity = opacity; o.material.transparent = opacity < 1; } });
+    });
+  };
 }
 
 function buildRoad(group) {
@@ -793,8 +901,17 @@ export function createWorld(canvas, { width, height, portrait = false, pixelRati
   renderer.toneMappingExposure = 1.05;
 
   const scene = new THREE.Scene();
+  // A sky dome that fades from blue overhead to a warm haze at the horizon; the fog
+  // uses the haze colour, so far islands melt into it.
   scene.background = new THREE.Color(PALETTE.sky);
-  scene.fog = new THREE.Fog(PALETTE.sky, portrait ? 60 : 45, portrait ? 150 : 120);
+  scene.fog = new THREE.Fog(PALETTE.sky, portrait ? 70 : 55, portrait ? 170 : 140);
+  const skyDome = new THREE.Mesh(new THREE.SphereGeometry(300, 32, 16), new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: { top: { value: new THREE.Color(PALETTE.skyTop) }, horizon: { value: new THREE.Color(PALETTE.sky) } },
+    vertexShader: 'varying vec3 vDir; void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform vec3 top; uniform vec3 horizon; varying vec3 vDir; void main() { float h = smoothstep(-0.05, 0.55, vDir.y); gl_FragColor = vec4(mix(horizon, top, h), 1.0); }',
+  }));
+  scene.add(skyDome);
 
   const camera = new THREE.PerspectiveCamera(portrait ? 40 : 30, width / height, 0.5, 400);
 
@@ -812,12 +929,12 @@ export function createWorld(canvas, { width, height, portrait = false, pixelRati
 
   const world = new THREE.Group();
   scene.add(world);
-  const water = mesh(new THREE.PlaneGeometry(600, 400), new THREE.MeshStandardMaterial({ color: PALETTE.water, roughness: 0.55, metalness: 0 }), { rx: -Math.PI / 2, x: 45, y: -0.15, shadow: false });
+  const water = mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshStandardMaterial({ color: PALETTE.water, roughness: 0.35, metalness: 0.05 }), { rx: -Math.PI / 2, x: 45, y: -0.15, shadow: false });
   world.add(water);
   // Soft ripples: rings around each island.
   const ripples = [];
   for (const isl of [...ISLANDS.filter((i) => i.r > 0), ...EXTRA_ISLETS]) {
-    const ring = mesh(new THREE.RingGeometry(isl.r + 0.4, isl.r + 0.75, 48), new THREE.MeshBasicMaterial({ color: '#d8efe9', transparent: true, opacity: 0.5 }), { rx: -Math.PI / 2, x: isl.c.x, y: -0.12, z: isl.c.z, shadow: false });
+    const ring = mesh(new THREE.RingGeometry(isl.r + 0.4, isl.r + 0.75, 48), new THREE.MeshBasicMaterial({ color: '#e9fbff', transparent: true, opacity: 0.5 }), { rx: -Math.PI / 2, x: isl.c.x, y: -0.12, z: isl.c.z, shadow: false });
     ripples.push({ ring, r: isl.r });
     world.add(ring);
   }
@@ -838,21 +955,12 @@ export function createWorld(canvas, { width, height, portrait = false, pixelRati
     s.faces.rotation.y = Math.atan2(cam.x - s.faces.position.x, cam.z - s.faces.position.z) - 0.25;
   });
 
-  // Post: a light tilt-shift blur, top and bottom, for the miniature look.
+  // Post: multisampled render, then tone mapping. (No blur, so every frame stays sharp.)
   const target = new THREE.WebGLRenderTarget(width * pixelRatio, height * pixelRatio, { samples: 4, type: THREE.HalfFloatType });
   const composer = new EffectComposer(renderer, target);
   composer.setPixelRatio(pixelRatio);
   composer.setSize(width, height);
   composer.addPass(new RenderPass(scene, camera));
-  const hBlur = new ShaderPass(HorizontalTiltShiftShader);
-  const vBlur = new ShaderPass(VerticalTiltShiftShader);
-  const focusLine = portrait ? 0.42 : 0.5;
-  hBlur.uniforms.h.value = 1.6 / (width * pixelRatio);
-  vBlur.uniforms.v.value = 1.6 / (height * pixelRatio);
-  hBlur.uniforms.r.value = focusLine;
-  vBlur.uniforms.r.value = focusLine;
-  composer.addPass(hBlur);
-  composer.addPass(vBlur);
   composer.addPass(new OutputPass());
 
   // Shift the picture so the scene sits beside the page's text, not under it.
@@ -871,7 +979,7 @@ export function createWorld(canvas, { width, height, portrait = false, pixelRati
     sun.position.copy(look).add(v3(-14, 26, 12));
     sun.target.position.copy(look);
     scenes.forEach((s, i) => s.update(T, localFor(T, i)));
-    moveClouds(T);
+    moveClouds(T, camera.position);
     const u = parcelU(T);
     const p = road.getPointAt(clamp(u));
     const tan = road.getTangentAt(clamp(u));

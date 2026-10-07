@@ -8,7 +8,7 @@ import { createWorld, segments, TOTAL_SECONDS, FPS } from './world.js';
 const q = new URLSearchParams(location.search);
 const width = Number(q.get('w') || 1280), height = Number(q.get('h') || 720);
 const world = createWorld(document.getElementById('c'), { width, height, portrait: q.get('portrait') === '1' });
-window.frame = (T, quality = 0.92) => { world.renderAt(T); return document.getElementById('c').toDataURL('image/jpeg', quality); };
+window.frame = (T, type = 'image/png') => { world.renderAt(T); return document.getElementById('c').toDataURL(type); };
 window.info = { segments: segments(), TOTAL_SECONDS, FPS };
 window.ready = true;
 </script></body></html>
