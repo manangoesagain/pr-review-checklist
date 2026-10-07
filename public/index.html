@@ -30,33 +30,66 @@
     .sw-brand__mark {
       width: 26px; height: 26px; border-radius: 7px;
       background: #2f5fd0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
-      box-shadow: 0 6px 14px rgba(47, 95, 208, 0.3);
+      border: 1.5px solid #1f2a37; border-radius: 4px; box-shadow: 2px 2px 0 #1f2a37;
     }
     .sw-topcta, .sw-btn--primary { background: #2f5fd0; }
     .sw-copy__eyebrow { letter-spacing: 0.12em; }
     :focus-visible { outline: 3px solid #2f5fd0; outline-offset: 3px; }
     noscript a { color: #2f5fd0; }
-    /* The words sit on a frosted glass card instead of a cream wash over the left of
-       the picture, so the world stays bright and sharp edge to edge. */
+    /* The words sit on a sheet of paper, like one page of the review checklist:
+       flat paper, an ink outline and a hard shadow, with the section's points as
+       tick boxes. No blur, glow or tinted glass. */
     .sw-copylayer::before { display: none; }
     .sw-copy {
-      width: min(40vw, 470px); padding: 30px 32px 32px; border-radius: 26px;
-      background: rgba(255, 255, 255, 0.8);
-      -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
-      border: 1px solid rgba(255, 255, 255, 0.75);
-      box-shadow: 0 24px 60px rgba(18, 52, 80, 0.2), 0 2px 6px rgba(18, 52, 80, 0.08);
+      width: min(40vw, 460px); padding: 0 0 26px; border-radius: 4px;
+      background: #fffdf7; color: #1f2a37;
+      border: 1.5px solid #1f2a37;
+      box-shadow: 5px 5px 0 #1f2a37;
+      /* The engine's scroll drift replaces transform, so centre the sheet with translate. */
+      translate: 0 -50%;
     }
-    .sw-copy__title, .sw-copy__body { text-shadow: none; }
+    .sw-copy > * { margin-left: 28px; margin-right: 28px; }
     .sw-copy__num { display: none; }
-    .sw-copy__eyebrow { margin-top: 0; }
-    .sw-hint { color: #1f2a37; padding: 10px 14px 8px; border-radius: 18px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+    .sw-copy__eyebrow {
+      display: flex; align-items: center; gap: 10px; margin: 0 0 22px; padding: 13px 28px 12px;
+      border-bottom: 1.5px solid #1f2a37; background: #f3efe4;
+      font: 600 0.74rem/1 ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; letter-spacing: 0.08em;
+      color: #1f2a37; margin-left: 0; margin-right: 0;
+    }
+    .sw-copy__eyebrow::before { content: ""; width: 10px; height: 10px; flex: none; background: var(--sw-accent); border: 1.5px solid #1f2a37; }
+    .sw-copy__title { margin-top: 0; font-weight: 800; letter-spacing: -0.025em; line-height: 1.02; text-shadow: none; color: #1f2a37; }
+    .sw-copy__body { color: #3d4654; text-shadow: none; }
+    .sw-copy__tags { display: grid; gap: 9px; margin-top: 20px; }
+    .sw-copy__tags li {
+      display: flex; align-items: center; gap: 10px; padding: 0; border: 0; border-radius: 0; background: none;
+      font: 500 0.86rem/1.2 ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; color: #1f2a37;
+    }
+    .sw-copy__tags li::before {
+      content: "\2713"; display: grid; place-items: center; width: 17px; height: 17px; flex: none;
+      border: 1.5px solid #1f2a37; border-radius: 2px; background: var(--sw-accent); color: #fff;
+      font: 700 0.72rem/1 system-ui, sans-serif;
+    }
+    .sw-btn { border-radius: 4px; border: 1.5px solid #1f2a37; }
+    .sw-btn--primary { box-shadow: 3px 3px 0 #1f2a37; }
+    .sw-btn--ghost { background: #fffdf7; }
+    .sw-topcta { border-radius: 4px; border: 1.5px solid #1f2a37; box-shadow: 3px 3px 0 #1f2a37; }
+    .sw-nav { background: #fffdf7; border: 1.5px solid #1f2a37; border-radius: 4px; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 3px 3px 0 #1f2a37; }
+    .sw-nav__item { border-radius: 2px; color: #3d4654; }
+    .sw-route__label { background: #fffdf7; border: 1.5px solid #1f2a37; border-radius: 3px; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    @media (min-width: 861px) and (max-height: 760px) {
+      .sw-copy__title { font-size: clamp(1.8rem, 3.4vw, 2.6rem); }
+      .sw-copy__eyebrow { margin-bottom: 16px; }
+    }
+    .sw-hint { color: #1f2a37; padding: 10px 14px 8px; border-radius: 4px; background: #fffdf7; border: 1.5px solid #1f2a37; }
     @media (max-width: 860px) {
       .sw-brand__name { font-size: 1rem; }
       .sw-hint span { display: none; }
-      .sw-copy { padding: 20px 20px 22px; border-radius: 22px; width: auto; right: 46px; }
+      .sw-copy { padding: 0 0 18px; width: auto; right: 46px; box-shadow: 4px 4px 0 #1f2a37; translate: none; }
+      .sw-copy > * { margin-left: 18px; margin-right: 18px; }
+      .sw-copy__eyebrow { padding: 11px 18px 10px; margin: 0 0 14px; }
       .sw-copy__title { font-size: clamp(1.6rem, 6.6vw, 2.2rem); }
       .sw-copy__body { margin-top: 10px; font-size: 0.97rem; }
-      .sw-copy__tags { margin-top: 14px; }
+      .sw-copy__tags { margin-top: 14px; gap: 7px; }
     }
   </style>
 </head>
