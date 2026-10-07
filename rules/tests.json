@@ -1,0 +1,47 @@
+{
+  "area": "tests",
+  "questions": [
+    "Is the new or changed logic actually exercised by the tests in this PR, including the error and edge cases?",
+    "Were any tests weakened: assertions removed, tests skipped, or expected values changed to match new behavior without explanation?"
+  ],
+  "hints": [
+    {
+      "id": "test-only",
+      "title": "Test focus left in, so other tests are skipped",
+      "severity": "must-fix",
+      "kinds": ["test"],
+      "patterns": {
+        "js": "\\b(describe|it|test|context|suite)\\.only\\s*\\(|\\b(fit|fdescribe)\\s*\\("
+      },
+      "why": "With .only left in, the test runner skips every other test, so failures elsewhere go unnoticed.",
+      "fix": "Remove .only before merging.",
+      "comment": "Looks like .only was left in, which makes the runner skip the other tests. Could you remove it?"
+    },
+    {
+      "id": "test-skip",
+      "title": "Test turned off",
+      "severity": "worth-asking",
+      "kinds": ["test"],
+      "patterns": {
+        "js": "\\b(describe|it|test|context|suite)\\.skip\\s*\\(|\\b(xit|xdescribe|xtest)\\s*\\(",
+        "py": "@(pytest\\.mark\\.skip|unittest\\.skip)"
+      },
+      "why": "A skipped test checks nothing, and skipped tests are easy to forget.",
+      "fix": "Fix the test or the code it checks, or explain why it's skipped and when it comes back.",
+      "comment": "Why is this test skipped? Is there a plan to turn it back on?"
+    },
+    {
+      "id": "assertions-removed",
+      "title": "Checks removed from a test",
+      "severity": "worth-asking",
+      "match": "removed-assertions",
+      "kinds": ["test"],
+      "patterns": {
+        "any": "\\b(expect|assert\\w*)\\s*[.(]|\\bself\\.assert\\w*\\s*\\(|\\bshould\\b"
+      },
+      "why": "Fewer checks means the test can pass while the code is wrong.",
+      "fix": "Keep the removed checks, or replace them with checks for the new behavior.",
+      "comment": "Some checks were removed from this test. Is the old behavior still covered somewhere?"
+    }
+  ]
+}

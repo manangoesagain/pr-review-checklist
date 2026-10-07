@@ -1,0 +1,103 @@
+{
+  "area": "security",
+  "questions": [
+    "Does text from a user (query string, form field, request body, file) reach a database query, a shell command, HTML, a file path or eval without being passed as a parameter or escaped?",
+    "Are keys, passwords or tokens written into the code or committed in a file?",
+    "Can someone reach data or actions they shouldn't, for example a missing login or ownership check on a new route?",
+    "Is a security check turned off, such as HTTPS certificate checks or input validation?"
+  ],
+  "hints": [
+    {
+      "id": "sql-built-from-values",
+      "title": "SQL built by pasting a value into the string",
+      "severity": "must-fix",
+      "patterns": {
+        "js": "(\\bSELECT\\b|\\bINSERT\\s+INTO\\b|\\bUPDATE\\s+\\w+\\s+SET\\b|\\bDELETE\\s+FROM\\b|\\bWHERE\\b|\\bselect\\s[^`\\\"']*\\sfrom\\b|\\binsert\\s+into\\b|\\bdelete\\s+from\\b|\\bupdate\\s+\\w+\\s+set\\b)[^`]*\\$\\{|(\\bSELECT\\b|\\bINSERT\\s+INTO\\b|\\bUPDATE\\s+\\w+\\s+SET\\b|\\bDELETE\\s+FROM\\b|\\bWHERE\\b|\\bselect\\s[^`\\\"']*\\sfrom\\b|\\binsert\\s+into\\b|\\bdelete\\s+from\\b|\\bupdate\\s+\\w+\\s+set\\b)[^\\\"'`]*[\\\"']\\s*\\+\\s*[\\w(]",
+        "py": "\\bf[\\\"'][^\\\"']*(\\bSELECT\\b|\\bINSERT\\s+INTO\\b|\\bUPDATE\\s+\\w+\\s+SET\\b|\\bDELETE\\s+FROM\\b|\\bWHERE\\b|\\bselect\\s[^`\\\"']*\\sfrom\\b|\\binsert\\s+into\\b|\\bdelete\\s+from\\b|\\bupdate\\s+\\w+\\s+set\\b)[^\\\"']*\\{|(\\bSELECT\\b|\\bINSERT\\s+INTO\\b|\\bUPDATE\\s+\\w+\\s+SET\\b|\\bDELETE\\s+FROM\\b|\\bWHERE\\b|\\bselect\\s[^`\\\"']*\\sfrom\\b|\\binsert\\s+into\\b|\\bdelete\\s+from\\b|\\bupdate\\s+\\w+\\s+set\\b)[^\\\"']*[\\\"']\\s*(%\\s*[\\w(]|\\.format\\(|\\+\\s*\\w)"
+      },
+      "why": "If that value ever comes from a user, they can rewrite the query and read or delete data (SQL injection).",
+      "fix": "Pass the value as a query parameter, for example db.query('... WHERE title LIKE ?', [value]), instead of putting it inside the SQL text.",
+      "comment": "Could this use a query parameter instead of putting the value inside the SQL string? If the value can come from a user, this allows SQL injection."
+    },
+    {
+      "id": "secret-in-code",
+      "title": "Key or password written into the code",
+      "severity": "must-fix",
+      "kinds": [
+        "code",
+        "test",
+        "config",
+        "docs"
+      ],
+      "patterns": {
+        "any": "\\b(sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}|nvapi-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{30,})|\\b(api[_-]?key|secret|password|passwd|auth[_-]?token|access[_-]?key|private[_-]?key)\\b[\"']?\\s*[:=]\\s*[\"'][^\"'\\s]{8,}[\"']"
+      },
+      "flags": "i",
+      "unless": "(your|example|placeholder|changeme|dummy|fake|sample|xxxx|<|\\$\\{|process\\.env|os\\.environ|getenv)",
+      "why": "Anyone who can read the repo, now or later in its history, can use it.",
+      "fix": "Move it to an environment variable (a .env file that git ignores), and replace the key, since it has already been shared.",
+      "comment": "This looks like a real key or password in the code. Could it move to an environment variable? It's also worth replacing the key, since it's now in the history."
+    },
+    {
+      "id": "html-from-values",
+      "title": "HTML built from a value",
+      "severity": "worth-asking",
+      "patterns": {
+        "js": "\\.(innerHTML|outerHTML)\\s*\\+?=\\s*(?![\"'][^\"'$]*[\"']\\s*;?\\s*$)|\\binsertAdjacentHTML\\s*\\(|\\bdocument\\.write(ln)?\\s*\\(|dangerouslySetInnerHTML"
+      },
+      "why": "If the value holds text a user typed, it can run their script in other people's browsers (XSS).",
+      "fix": "Use textContent for plain text, or escape the value before it goes into HTML.",
+      "comment": "Can user text end up in this HTML? If so, textContent (or escaping the value) would stop scripts running from it."
+    },
+    {
+      "id": "eval",
+      "title": "Code run from a string",
+      "severity": "worth-asking",
+      "patterns": {
+        "js": "(^|[^.\\w])eval\\s*\\(|\\bnew\\s+Function\\s*\\(|\\b(setTimeout|setInterval)\\s*\\(\\s*[\"'`]",
+        "py": "(^|[^.\\w])(eval|exec)\\s*\\("
+      },
+      "why": "Running a string as code means anyone who controls that string controls the program.",
+      "fix": "Replace it with normal code, or parse the data with JSON.parse or ast.literal_eval.",
+      "comment": "Is there a way to do this without eval? If any part of the string comes from outside, it can run arbitrary code."
+    },
+    {
+      "id": "shell-from-values",
+      "title": "Shell command built from a value",
+      "severity": "must-fix",
+      "patterns": {
+        "js": "\\b(exec|execSync)\\s*\\(\\s*(`[^`]*\\$\\{|[\"'][^\"']*[\"']\\s*\\+)",
+        "py": "\\bos\\.(system|popen)\\s*\\(|\\bsubprocess\\.\\w+\\(.*shell\\s*=\\s*True"
+      },
+      "why": "A value with characters like ; or && in it can run any other command on the server.",
+      "fix": "Pass the command and its arguments as a list (execFile, or subprocess.run([...]) without shell=True).",
+      "comment": "Could this pass the arguments as a list instead of building a shell string? A value containing ; or && could run other commands."
+    },
+    {
+      "id": "tls-off",
+      "title": "HTTPS certificate check turned off",
+      "severity": "worth-asking",
+      "kinds": [
+        "code",
+        "config"
+      ],
+      "patterns": {
+        "any": "rejectUnauthorized\\s*:\\s*false|NODE_TLS_REJECT_UNAUTHORIZED\\s*=?\\s*[\"']?0|\\bverify\\s*=\\s*False\\b|InsecureSkipVerify\\s*:\\s*true|CERT_NONE"
+      },
+      "why": "Without the check, someone on the network can pretend to be the server and read or change the traffic.",
+      "fix": "Remove it, and fix the certificate problem it was working around.",
+      "comment": "Is turning off the certificate check needed here? Without it, the connection can be intercepted."
+    },
+    {
+      "id": "unsafe-deserialize",
+      "title": "Unsafe loading of saved data",
+      "severity": "worth-asking",
+      "patterns": {
+        "py": "\\bpickle\\.loads?\\s*\\(|\\byaml\\.load\\s*\\((?![^)]*SafeLoader)"
+      },
+      "why": "Loading pickle or full YAML from an untrusted source can run code hidden in the data.",
+      "fix": "Use json, or yaml.safe_load, for anything that comes from outside.",
+      "comment": "Where does this data come from? If it isn't fully trusted, json or yaml.safe_load would be safer."
+    }
+  ]
+}

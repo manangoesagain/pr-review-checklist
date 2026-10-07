@@ -285,6 +285,7 @@ textarea {
   .promise { font-size: 21px; margin-top: 8px; }
   .how { grid-template-columns: 1fr; }
   .input-row { flex-direction: column; }
+  .input-row input { flex: none; }
   .input-row .btn { width: 100%; }
   .item-head { flex-wrap: wrap; }
   .item-toggle { flex-wrap: wrap; row-gap: 4px; }

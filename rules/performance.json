@@ -1,0 +1,34 @@
+{
+  "area": "performance",
+  "questions": [
+    "Is a database query or network request made once per item inside a loop (the N+1 problem), where one query could load everything?",
+    "Does a request handler do slow or blocking work (reading files synchronously, large loops, loading every row) on every request?"
+  ],
+  "hints": [
+    {
+      "id": "call-in-loop",
+      "title": "Database or network call inside a loop",
+      "severity": "worth-asking",
+      "match": "in-loop",
+      "patterns": {
+        "js": "\\bawait\\b[^;]*?(\\b(?:db|knex|prisma|pool|client|conn|connection|sequelize|collection|repo|repository|model|axios|supabase|redis)\\.[\\w.]*\\s*\\(|\\bfetch\\s*\\(|\\.(?:query|execute|findOne|findMany|findUnique|findById|findAll|select|insert|update|upsert)\\s*\\()",
+        "py": "\\b(?:cursor|cur|conn|connection|session|db|requests|httpx|client)\\.(?:execute|query|get|post|fetch\\w*|scalars?)\\s*\\(|\\.objects\\.(?:get|filter|create)\\s*\\("
+      },
+      "why": "It runs once for every item, so 100 items means 100 trips to the database or network, and the page gets slower as data grows.",
+      "fix": "Load everything in one call before the loop (a JOIN, or WHERE id IN (...)), then match the results up in code.",
+      "comment": "This makes one call per item in the loop. Could it load them all in one query instead?"
+    },
+    {
+      "id": "blocking-in-handler",
+      "title": "Blocking file or process call in a request handler",
+      "severity": "good-to-know",
+      "match": "in-handler",
+      "patterns": {
+        "js": "\\b(?:readFileSync|writeFileSync|appendFileSync|readdirSync|statSync|execSync|spawnSync)\\s*\\("
+      },
+      "why": "While it runs, the server can't answer anyone else's request.",
+      "fix": "Use the async version (for example await fs.promises.readFile) or do it once at startup.",
+      "comment": "This blocks the server while it runs. Could it use the async version, or load once at startup?"
+    }
+  ]
+}

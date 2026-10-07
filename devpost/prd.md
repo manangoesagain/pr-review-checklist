@@ -62,7 +62,7 @@ Source: `scope.md > The Unique Kernel`.
 
 - Five areas: Tests, Breaking changes, Docs, Performance, Security.
 - Each item has: severity, a short title, a `file:line` reference (or a count for facts like "3 code files, 0 tests"), the code snippet with the flagged line highlighted, **Why it matters** (one plain sentence), **How to fix it** (one suggestion), a **where it came from** tag, and a **suggested comment**.
-- Where-it-came-from tags: **Counted fact**, **Pattern and AI agree**, **AI, confirmed**, **AI, unconfirmed**.
+- Where-it-came-from tags: **Counted fact**, **Pattern match**, **Pattern and AI agree**, **AI, confirmed**, **AI, unconfirmed**.
 - Breaking-change items are phrased as questions for the author, because the tool can't see the code that calls a changed function.
 - An area with nothing found says so ("Docs: looks good") instead of staying blank.
 - At most 3 AI items per area and 12 in total, most important first.

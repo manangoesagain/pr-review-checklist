@@ -21,7 +21,7 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
   Learner check: Start the app, click **Try a sample**, and check the facts match what the demo PR changes: code files changed and no test files.
   Commit: `Show counted facts for a pasted diff or the sample PR`
 
-- [ ] **2. Pattern hints point at the exact line, with the code shown**
+- [x] **2. Pattern hints point at the exact line, with the code shown**
   Becomes usable: Items such as "SQL built from user input" appear with a severity, a `file:line`, the code snippet with that line highlighted, why it matters, how to fix it, and a suggested comment. This all works with no AI key, so basic mode is real from here.
   Why now: Pointing at the right line and showing the right code is the machinery the AI items will reuse. Proving it on pattern hints first separates "can we point at lines" from "is the AI right".
   PRD ref: `prd.md > The checklist`, `prd.md > Basic mode`
@@ -116,3 +116,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 
 - Added `lib/areas.js` for the area names, severity order and sorting — facts, hints and the line check all need them, and the spec's file list had no shared home for them.
 - Built the bookshop demo repo files and `demo/build-demo.js` in slice 1 instead of slice 8 — the samples every test uses must be the demo repo's real diffs, and building the repo with fixed dates gives the same commit ids on any computer, so sample links will work once the repo is pushed. Slice 8 keeps pushing the repo and the evaluation.
+- Added a fifth where-it-came-from tag, **Pattern match**, in `prd.md > The checklist` — basic mode shows pattern hints on their own, and none of the four planned tags described an item found only by a pattern.

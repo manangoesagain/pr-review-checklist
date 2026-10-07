@@ -39,9 +39,13 @@ test('the sample streams its steps, then the review', async () => {
   assert.equal(result.pr.title, 'Add order search');
   assert.equal(result.stats.files, 4);
   assert.deepEqual(result.areas.map((a) => [a.id, a.status]), [
-    ['security', 'unchecked'], ['tests', 'issues'], ['breaking', 'unchecked'], ['docs', 'unchecked'], ['performance', 'unchecked'],
+    ['security', 'issues'], ['tests', 'issues'], ['breaking', 'unchecked'], ['docs', 'issues'], ['performance', 'issues'],
   ]);
   assert.equal(result.areas[1].items[0].id, 'tests-1');
+  const sql = result.areas[0].items[0];
+  assert.equal(`${sql.file}:${sql.line}`, 'src/search.ts:15');
+  assert.equal(sql.snippet.find((row) => row.hit).line, 15);
+  assert.match(sql.link, /^https:\/\/github\.com\/manangoesagain\/bookshop-demo\/blob\/[0-9a-f]{40}\/src\/search\.ts#L15$/);
 });
 
 test('the clean sample has nothing flagged and tests marked as fine', async () => {

@@ -1,0 +1,48 @@
+{
+  "area": "breaking",
+  "questions": [
+    "Did a function, class, route, response, config key or database column that other code or other apps may rely on change its name, inputs or shape? Callers are not in the diff, so ask this as a question for the author.",
+    "Was something renamed or removed without keeping the old name working for a while?"
+  ],
+  "hints": [
+    {
+      "id": "export-removed",
+      "title": "Exported {1} removed or renamed",
+      "severity": "worth-asking",
+      "match": "removed-name",
+      "patterns": {
+        "js": "^\\s*export\\s+(?:default\\s+)?(?:async\\s+)?(?:function\\*?|const|let|var|class|interface|type|enum)\\s+([A-Za-z_$][\\w$]*)",
+        "py": "^(?:async\\s+)?(?:def|class)\\s+([A-Za-z_]\\w*)"
+      },
+      "why": "Other files or projects that import {1} will break when this merges.",
+      "fix": "Search for every use of {1} and update it, or keep the old name working for a while.",
+      "comment": "{1} is removed or renamed here. Is anything else still importing it?"
+    },
+    {
+      "id": "route-removed",
+      "title": "Route {1} removed or changed",
+      "severity": "worth-asking",
+      "match": "removed-name",
+      "patterns": {
+        "js": "\\b(?:app|router|server|api|routes)\\.(?:get|post|put|patch|delete|all)\\s*\\(\\s*[\"'`]([^\"'`]+)[\"'`]",
+        "py": "@\\w+\\.(?:route|get|post|put|patch|delete)\\s*\\(\\s*[\"']([^\"']+)[\"']"
+      },
+      "why": "Apps or pages that call {1} will start getting errors.",
+      "fix": "Keep the old route working (or redirect it) until everything that calls it is updated.",
+      "comment": "The route {1} goes away in this PR. Does anything still call it?"
+    },
+    {
+      "id": "signature-changed",
+      "title": "Inputs of {1} changed",
+      "severity": "worth-asking",
+      "match": "changed-signature",
+      "patterns": {
+        "js": "^\\s*export\\s+(?:default\\s+)?(?:async\\s+)?function\\*?\\s+([A-Za-z_$][\\w$]*)\\s*(?:<[^>]*>)?\\s*\\(([^)]*)\\)",
+        "py": "^(?:async\\s+)?def\\s+([A-Za-z_]\\w*)\\s*\\(([^)]*)\\)"
+      },
+      "why": "Code that calls {1} the old way may now pass the wrong values, or fail.",
+      "fix": "Check every call of {1}, or give new inputs a default so old calls still work.",
+      "comment": "The inputs of {1} changed. Have all the places that call it been updated?"
+    }
+  ]
+}

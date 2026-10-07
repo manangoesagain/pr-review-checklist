@@ -1,0 +1,49 @@
+{
+  "area": "docs",
+  "questions": [
+    "Does the README (given in <readme>) still describe the code correctly after this change: endpoints, responses, settings, commands?",
+    "Does a new route, setting, command or public function need a line in the README or docs?"
+  ],
+  "hints": [
+    {
+      "id": "route-not-in-readme",
+      "title": "New endpoint {1} isn't in the README",
+      "titleWithoutReadme": "New endpoint {1}, but no docs changed",
+      "severity": "worth-asking",
+      "match": "new-name-undocumented",
+      "patterns": {
+        "js": "\\b(?:app|router|server|api|routes)\\.(?:get|post|put|patch|delete|all)\\s*\\(\\s*[\"'`]([^\"'`]+)[\"'`]",
+        "py": "@\\w+\\.(?:route|get|post|put|patch|delete)\\s*\\(\\s*[\"']([^\"']+)[\"']"
+      },
+      "why": "People using the API look for endpoints in the README, so a missing one is invisible to them.",
+      "fix": "Add {1} to the README, with what it takes and what it returns.",
+      "comment": "Could you add {1} to the README so people know it exists?"
+    },
+    {
+      "id": "setting-not-documented",
+      "title": "New setting {1} may not be documented",
+      "severity": "good-to-know",
+      "match": "new-name-undocumented",
+      "patterns": {
+        "js": "\\bprocess\\.env\\.([A-Z][A-Z0-9_]{2,})|\\bprocess\\.env\\[[\"']([A-Z][A-Z0-9_]{2,})[\"']\\]",
+        "py": "\\bos\\.(?:environ\\.get|getenv)\\s*\\(\\s*[\"']([A-Z][A-Z0-9_]{2,})[\"']|\\bos\\.environ\\[[\"']([A-Z][A-Z0-9_]{2,})[\"']\\]"
+      },
+      "ignore": [
+        "NODE_ENV",
+        "PORT",
+        "HOST",
+        "CI",
+        "HOME",
+        "PATH",
+        "DEBUG",
+        "TZ",
+        "LANG",
+        "PWD",
+        "USER"
+      ],
+      "why": "Someone setting up the project won't know {1} exists until something fails.",
+      "fix": "Add {1} to .env.example (with an empty value) or to the README.",
+      "comment": "Could {1} go in .env.example or the README, so new setups know to set it?"
+    }
+  ]
+}
