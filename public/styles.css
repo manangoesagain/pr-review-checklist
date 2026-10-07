@@ -294,6 +294,28 @@ textarea {
   background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); border-top: 1px solid var(--border);
 }
 .action-bar-inner { display: flex; gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+.action-bar-inner .btn:last-child { margin-left: auto; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 72px; transform: translateX(-50%); z-index: 20;
+  padding: 9px 16px; border-radius: 999px; font-size: 14px; font-weight: 550;
+  color: var(--bg); background: var(--text); box-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
+  animation: toast-in 160ms ease-out;
+}
+@keyframes toast-in { from { opacity: 0; transform: translate(-50%, 6px); } }
+
+.copy-box { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; }
+.copy-dialog {
+  width: min(640px, calc(100vw - 32px)); padding: 18px; border: 1px solid var(--border-strong); border-radius: var(--radius);
+  color: var(--text); background: var(--surface);
+}
+.copy-dialog::backdrop { background: rgb(0 0 0 / 0.5); }
+.copy-dialog p { margin: 0 0 10px; }
+.copy-dialog-text {
+  width: 100%; box-sizing: border-box; padding: 10px; font: 13px/1.5 var(--mono); color: var(--text);
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px; resize: vertical;
+}
+.copy-dialog form { display: flex; justify-content: flex-end; margin-top: 10px; }
 
 @media (max-width: 640px) {
   .promise { font-size: 21px; margin-top: 8px; }

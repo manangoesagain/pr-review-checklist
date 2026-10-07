@@ -2,7 +2,8 @@
 // streams back, then draws the checklist. Everything from the server is put on
 // the page with textContent, never as HTML, so code in a PR can't run here.
 
-const SEVERITY_LABELS = { 'must-fix': 'Must fix', 'worth-asking': 'Worth asking', 'good-to-know': 'Good to know' };
+import { hiddenSummary, markdownFileName, reviewMarkdown, SEVERITY_LABELS } from './markdown.js';
+
 const SEVERITY_ORDER = ['must-fix', 'worth-asking', 'good-to-know'];
 const AREA_ORDER = ['security', 'tests', 'breaking', 'docs', 'performance'];
 const CHIP_NAMES = { security: 'Security', tests: 'Tests', breaking: 'Breaking', docs: 'Docs', performance: 'Performance' };
@@ -19,6 +20,7 @@ const state = {
   pasteMode: false,
   filter: null,
   timer: null,
+  done: new Set(), // ids of the items the person ticked
 };
 
 // Builds an element. Text always goes in as text, never as HTML.
@@ -228,14 +230,20 @@ function itemNode(item, open) {
   const bodyId = `item-body-${item.id}`;
   const node = el('li', { class: `item sev-${item.severity}${open ? ' is-open' : ''}`, id: `item-${item.id}`, 'data-area': item.area });
   const check = el('input', { type: 'checkbox', class: 'item-check', 'aria-label': `Done: ${item.title}` });
-  check.addEventListener('change', () => node.classList.toggle('is-done', check.checked));
+  check.addEventListener('change', () => {
+    node.classList.toggle('is-done', check.checked);
+    if (check.checked) state.done.add(item.id);
+    else state.done.delete(item.id);
+  });
 
   const body = el('div', { class: 'item-body', id: bodyId, hidden: !open },
     snippetNode(item),
     item.why ? el('p', { class: 'item-text' }, el('strong', { text: 'Why it matters: ' }), item.why) : null,
     item.fix ? el('p', { class: 'item-text' }, el('strong', { text: 'How to fix it: ' }), item.fix) : null,
     item.comment ? el('blockquote', { class: 'comment', 'aria-label': 'Suggested comment' }, item.comment) : null,
-    el('div', { class: 'item-foot' }, el('span', { class: 'tag', text: provenance(item) })),
+    el('div', { class: 'item-foot' },
+      el('span', { class: 'tag', text: provenance(item) }),
+      item.comment ? el('button', { type: 'button', class: 'btn btn-small', text: 'Copy comment', onclick: () => copyText(item.comment, 'Comment copied') }) : null),
   );
 
   const toggle = el('button', { type: 'button', class: 'item-toggle', 'aria-expanded': String(open), 'aria-controls': bodyId },
@@ -338,16 +346,6 @@ function hiddenRef(entry) {
 function hiddenNode(review) {
   const hidden = review.hidden ?? [];
   if (hidden.length === 0) return null;
-  const counts = { line: 0, claim: 0, limit: 0 };
-  for (const entry of hidden) {
-    counts[entry.removedBy === 'claim check' ? 'claim' : entry.removedBy === 'limit' ? 'limit' : 'line']++;
-  }
-  const parts = [
-    counts.line ? `${counts.line} couldn't be checked against the code` : null,
-    counts.claim ? `${counts.claim} rejected by the second check` : null,
-    counts.limit ? `${counts.limit} over the limit` : null,
-  ].filter(Boolean);
-
   const list = el('ul', { class: 'hidden-list', id: 'hidden-list', hidden: true },
     hidden.map((entry) => el('li', {},
       el('span', { class: 'hidden-title', text: entry.title }),
@@ -360,7 +358,7 @@ function hiddenNode(review) {
     toggle.setAttribute('aria-expanded', String(!list.hidden));
   });
   return el('div', { class: 'hidden-row' },
-    el('p', {}, `${plural(hidden.length, 'AI suggestion')} hidden: ${parts.join(', ')}. `, toggle),
+    el('p', {}, `${hiddenSummary(hidden)}. `, toggle),
     list);
 }
 
@@ -386,14 +384,87 @@ function checkedNode(review) {
       review.notes.map((note) => el('li', { text: note }))));
 }
 
+/* ---------- Copy and download ---------- */
+
+let toastTimer = null;
+function showToast(text) {
+  const toast = $('#toast');
+  toast.textContent = text;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, 2200);
+}
+
+// Older browsers, or a blocked clipboard: copy through a hidden text box instead.
+function copyWithTextBox(text) {
+  const box = el('textarea', { class: 'copy-box', readonly: true, 'aria-hidden': 'true' });
+  box.value = text;
+  document.body.append(box);
+  box.select();
+  let copied = false;
+  try {
+    copied = document.execCommand('copy');
+  } catch {
+    copied = false;
+  }
+  box.remove();
+  return copied;
+}
+
+// If nothing can reach the clipboard, show the text selected so Ctrl+C works.
+function showCopyDialog(text) {
+  const box = el('textarea', { class: 'copy-dialog-text', readonly: true, rows: 12, 'aria-label': 'Text to copy' });
+  box.value = text;
+  const dialog = el('dialog', { class: 'copy-dialog', 'aria-label': 'Copy this text' },
+    el('p', { text: 'Your browser blocked copying. Press Ctrl+C (or Cmd+C on a Mac) to copy the selected text.' }),
+    box,
+    el('form', { method: 'dialog' }, el('button', { type: 'submit', class: 'btn btn-small', text: 'Close' })));
+  dialog.addEventListener('close', () => dialog.remove());
+  document.body.append(dialog);
+  dialog.showModal();
+  box.select();
+  box.scrollTop = 0;
+}
+
+async function copyText(text, message = 'Copied') {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(message);
+    return;
+  } catch {
+    // Fall through to the older way.
+  }
+  if (copyWithTextBox(text)) showToast(message);
+  else showCopyDialog(text);
+}
+
+function copyMarkdown() {
+  if (state.review) copyText(reviewMarkdown(state.review, { done: state.done }), 'Checklist copied as Markdown');
+}
+
+function downloadMarkdown() {
+  if (!state.review) return;
+  const blob = new Blob([reviewMarkdown(state.review, { done: state.done })], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = el('a', { href: url, download: markdownFileName(state.review), hidden: true });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('Saved to your downloads');
+}
+
 function actionBar() {
   return el('div', { class: 'action-bar' },
     el('div', { class: 'wrap action-bar-inner' },
+      el('button', { type: 'button', class: 'btn btn-small btn-primary', id: 'copy-md-btn', text: 'Copy Markdown', onclick: copyMarkdown }),
+      el('button', { type: 'button', class: 'btn btn-small', id: 'download-btn', text: 'Download .md', onclick: downloadMarkdown }),
       el('button', { type: 'button', class: 'btn btn-small', text: 'Start over', onclick: startOver })));
 }
 
 function renderResults(review) {
   state.filter = null;
+  state.done = new Set();
   const items = review.areas.flatMap((area) => area.items).sort(compareItems);
   $('#results-view').replaceChildren(...[
     review.mode === 'basic' ? basicBanner(review) : null,

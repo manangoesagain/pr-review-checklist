@@ -61,7 +61,7 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
   Learner check: On your PC, paste the link of any small public PR and check that clicking a `file:line` opens the same line on GitHub.
   Commit: `Review public PRs by link`
 
-- [ ] **6. Copy Markdown, Copy comment and Download**
+- [x] **6. Copy Markdown, Copy comment and Download**
   Becomes usable: **Copy Markdown** puts a GitHub task list on the clipboard that shows tickable boxes and working line links when pasted into a PR comment. **Copy comment** copies one item's suggested comment. **Download .md** saves the same Markdown. A "Copied" note appears after each copy.
   Why now: This is how the checklist leaves the tool and reaches the PR. It needs the finished items, so it comes after them.
   PRD ref: `prd.md > Copying and sharing`, `prd.md > The Core Journey` (step 7)
