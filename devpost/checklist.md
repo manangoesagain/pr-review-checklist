@@ -31,7 +31,7 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
   Learner check: Try the sample and open the SQL item. Is the highlighted line the query built from the search text?
   Commit: `Add pattern hints with line snippets and basic mode`
 
-- [ ] **3. The AI reviewer adds items, and the line check hides any it can't match**
+- [x] **3. The AI reviewer adds items, and the line check hides any it can't match**
   Becomes usable: With an NVIDIA key, the review adds AI items (such as the changed user response and the stale README). AI items pointing at a made-up file or line are hidden as "couldn't be matched to the code". If the AI fails, the basic checklist appears with "The AI reviewer didn't answer" and **Retry**.
   Why now: This is the heart of the idea: the AI reviews, and plain code proves every line it points at. It comes before any polish.
   PRD ref: `prd.md > The checklist`, `prd.md > Proof and honesty`, `prd.md > Basic mode`

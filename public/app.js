@@ -12,7 +12,8 @@ const DIFF_EXAMPLE = '--- a/src/app.js\n+++ b/src/app.js\n@@ -1,2 +1,2 @@';
 const $ = (selector) => document.querySelector(selector);
 
 const state = {
-  health: { ai: false, model: null },
+  health: { ai: false, model: null, problem: null },
+  lastBody: null,
   review: null,
   controller: null,
   pasteMode: false,
@@ -158,6 +159,7 @@ async function streamReview(body, signal, onStep) {
 }
 
 async function startReview(body) {
+  state.lastBody = body;
   hideError();
   state.controller?.abort();
   const controller = new AbortController();
@@ -298,10 +300,20 @@ function setFilter(areaId) {
 }
 
 function basicBanner(review) {
-  const message = review.aiError
-    ? el('span', {}, el('strong', { text: 'The AI reviewer didn\'t answer,' }), ' so this is the basic check.')
-    : el('span', {}, el('strong', { text: 'Basic mode:' }), ' counted facts and patterns only. Add an AI key for the full review.');
-  return el('div', { class: 'banner', role: 'note' }, message);
+  if (review.aiError) {
+    return el('div', { class: 'banner', role: 'note' },
+      el('div', { class: 'banner-text' },
+        el('p', {}, el('strong', { text: 'The AI reviewer didn\'t answer,' }), ' so this is the basic check.'),
+        el('p', { class: 'banner-detail', text: review.aiError })),
+      el('button', {
+        type: 'button',
+        class: 'btn btn-small',
+        text: 'Retry',
+        onclick: () => { if (state.lastBody && !state.controller) startReview(state.lastBody); },
+      }));
+  }
+  return el('div', { class: 'banner', role: 'note' },
+    el('p', {}, el('strong', { text: 'Basic mode:' }), ' counted facts and patterns only. Add an AI key for the full review.'));
 }
 
 function allClearNode(review) {
@@ -346,7 +358,7 @@ function actionBar() {
 function renderResults(review) {
   state.filter = null;
   const items = review.areas.flatMap((area) => area.items).sort(compareItems);
-  $('#results-view').replaceChildren(
+  $('#results-view').replaceChildren(...[
     review.mode === 'basic' ? basicBanner(review) : null,
     prCard(review),
     el('div', { class: 'chips', role: 'group', 'aria-label': 'Areas' }, review.areas.map(chipNode)),
@@ -354,7 +366,7 @@ function renderResults(review) {
     items.length > 0 ? el('ol', { class: 'items', 'aria-label': 'Checklist' }, items.map((item, i) => itemNode(item, i === 0))) : allClearNode(review),
     checkedNode(review),
     actionBar(),
-  );
+  ].filter(Boolean));
 }
 
 function startOver() {
@@ -392,9 +404,10 @@ async function loadHealth() {
     state.health = { ai: false, model: null };
   }
   const pill = $('#mode-pill');
-  pill.textContent = state.health.ai ? 'AI reviewer on' : 'Basic mode';
-  pill.className = `pill ${state.health.ai ? 'is-ai' : 'is-basic'}`;
-  pill.title = state.health.ai ? `Model: ${state.health.model}` : 'No AI key set: facts and pattern checks only';
+  const problem = state.health.ai && state.health.problem;
+  pill.textContent = problem ? 'AI reviewer problem' : state.health.ai ? 'AI reviewer on' : 'Basic mode';
+  pill.className = `pill ${state.health.ai && !problem ? 'is-ai' : 'is-basic'}`;
+  pill.title = problem || (state.health.ai ? `Model: ${state.health.model}` : 'No AI key set: facts and pattern checks only');
   pill.hidden = false;
   if (!state.health.ai) {
     $('#privacy-note').textContent = 'Nothing is saved. The AI reviewer is off, so your code isn\'t sent to any AI service.';

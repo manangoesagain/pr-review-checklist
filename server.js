@@ -5,6 +5,7 @@
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import express from 'express';
+import { checkAi, createAiClient } from './lib/ai.js';
 import { loadEnvFile, readSettings } from './lib/env.js';
 import { ReviewError, runReview } from './lib/review.js';
 
@@ -16,14 +17,17 @@ function clientError(error) {
   return { code: 'server', message: 'Something went wrong on our side. Please try again.' };
 }
 
-export function createApp({ settings = readSettings(), reviewOptions = {} } = {}) {
+// `ai` is the AI client, or null for basic mode. By default it's made from the key in settings.
+export function createApp({ settings = readSettings(), ai = settings.nvidiaKey ? createAiClient({ apiKey: settings.nvidiaKey, model: settings.model }) : null, reviewOptions = {} } = {}) {
   const app = express();
+  app.locals.ai = ai;
+  app.locals.aiProblem = null; // Set by the startup check if the key or model doesn't work.
   app.disable('x-powered-by');
   app.use(express.json({ limit: '2mb' }));
   app.use(express.static(path.join(projectFolder, 'public')));
 
   app.get('/api/health', (_req, res) => {
-    res.json({ ai: Boolean(settings.nvidiaKey), model: settings.nvidiaKey ? settings.model : null });
+    res.json({ ai: Boolean(ai), model: ai?.model ?? null, problem: app.locals.aiProblem });
   });
 
   app.post('/api/review', async (req, res) => {
@@ -41,7 +45,7 @@ export function createApp({ settings = readSettings(), reviewOptions = {} } = {}
 
     try {
       const review = await runReview(req.body ?? {}, {
-        settings,
+        ai,
         signal: controller.signal,
         onStep: (step) => send({ step }),
         ...reviewOptions,
@@ -71,11 +75,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   loadEnvFile(path.join(projectFolder, '.env'));
   const settings = readSettings();
   const app = createApp({ settings });
-  app.listen(settings.port, '127.0.0.1', () => {
+  app.listen(settings.port, '127.0.0.1', async () => {
     console.log(`PR Review Checklist is running at http://localhost:${settings.port}`);
-    console.log(settings.nvidiaKey
-      ? `AI reviewer: on (${settings.model})`
-      : 'AI reviewer: off, so reviews use basic mode. Add NVIDIA_API_KEY to .env for the full review.');
+    if (!app.locals.ai) {
+      console.log('AI reviewer: off, so reviews use basic mode. Add NVIDIA_API_KEY to .env for the full review.');
+      return;
+    }
+    console.log(`AI reviewer: checking ${settings.model}...`);
+    const check = await checkAi(app.locals.ai);
+    app.locals.aiProblem = check.ok ? null : check.message;
+    console.log(check.ok ? check.message : `AI reviewer problem: ${check.message}`);
   }).on('error', (error) => {
     console.error(error.code === 'EADDRINUSE'
       ? `Port ${settings.port} is already in use. Close the other app, or set PORT=3001 in .env.`

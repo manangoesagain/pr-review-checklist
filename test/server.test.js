@@ -25,7 +25,7 @@ async function review(body) {
 
 test('health says basic mode when there is no AI key', async () => {
   const res = await fetch(`${base}/api/health`);
-  assert.deepEqual(await res.json(), { ai: false, model: null });
+  assert.deepEqual(await res.json(), { ai: false, model: null, problem: null });
 });
 
 test('the sample streams its steps, then the review', async () => {

@@ -190,6 +190,10 @@ textarea {
   border: 1px solid color-mix(in srgb, var(--ask) 40%, transparent); background: var(--ask-bg); font-size: 14px;
 }
 .banner strong { font-weight: 600; }
+.banner p { margin: 0; }
+.banner-text { flex: 1; min-width: 0; }
+.banner-detail { color: var(--muted); font-size: 13px; margin-top: 2px !important; }
+.banner .btn { flex: none; }
 
 .pr-card { padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 16px; }
 .pr-title { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -0.01em; overflow-wrap: anywhere; }
