@@ -80,6 +80,11 @@ for items 2 and 3).
    "· docs · perf" in the preview's footer at 800 and 1134 px, so the footer now has 84 px of
    right padding (16 px on phones, where the stamp is hidden). Checked: the whole footer line
    reads at 800, 1000, 1134, 1280, 1440 and 1920 px.
+   Follow-up (Priyansu: "go on and fix these"): at 800 px the text ended exactly at the stamp's
+   edge. Now, at 1000 px and under (one-column layout), the stamp sits just below the preview
+   instead of over its footer (`bottom: -84px`, 7 px clear), and above 1000 px the footer's
+   right padding is 100 px, leaving a 16 px gap at 1134 px. Measured at 720, 800, 1000 and
+   1134 px: no overlap, no sideways scroll.
 12. **Shadow slab on phones.** On phones the editor keeps only its soft shadow.
 13. **Cut-off example text.** The link box's example now reads `github.com/owner/repo/pull/123`,
    which fits at 1134 px. Full `https://` links still work.
