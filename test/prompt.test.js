@@ -48,3 +48,19 @@ test('the messages hold rules, clues, README and diff, with PR text fenced as da
   assert.match(user.content, /<readme>\n# Bookshop API/);
   assert.equal(user.content.match(/<\/pr_text>/g).length, 1);
 });
+
+test('a file too big for the budget is read in part, and one line that can never fit is listed instead', () => {
+  const lines = Array.from({ length: 1500 }, (_, i) => `+const line${i} = ${'x'.repeat(40)};`).join('\n');
+  const diff = classifyDiff(diffFromText(`--- a/src/big.js\n+++ b/src/big.js\n@@ -0,0 +1,1500 @@\n${lines}\n`));
+  const { text, reviewed, cut } = numberedDiff(diff);
+  assert.deepEqual(reviewed, ['src/big.js']);
+  assert.deepEqual(cut.map((c) => [c.path, c.partial]), [['src/big.js', true]]);
+  assert.match(text, /^R1 {4}\|\+const line0 = /m);
+  assert.match(text, /\[the rest of this file was cut to fit\]$/);
+  assert.ok(text.length <= 60_000);
+
+  const huge = classifyDiff(diffFromText(`--- a/src/min.js\n+++ b/src/min.js\n@@ -0,0 +1,1 @@\n+${'y'.repeat(70_000)}\n`));
+  const result = numberedDiff(huge);
+  assert.deepEqual(result.reviewed, []);
+  assert.deepEqual(result.cut.map((c) => [c.path, Boolean(c.partial)]), [['src/min.js', false]]);
+});

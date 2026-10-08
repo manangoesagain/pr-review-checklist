@@ -95,7 +95,9 @@ if (isMainModule(import.meta.url)) {
   }
   const settings = readSettings();
   const app = createApp({ settings });
-  app.listen(settings.port, '127.0.0.1', async () => {
+  // Express 5 also calls this with the error when the port is taken; the 'error' handler below explains that.
+  app.listen(settings.port, '127.0.0.1', async (error) => {
+    if (error) return;
     console.log(`PR Review Checklist is running at http://localhost:${settings.port}`);
     if (!app.locals.ai) {
       console.log('AI reviewer: off, so reviews use basic mode. Add NVIDIA_API_KEY to .env for the full review.');

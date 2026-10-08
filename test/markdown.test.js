@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { hiddenSummary, inlineText, markdownFileName, reviewMarkdown } from '../public/markdown.js';
+import { hiddenSummary, inlineText, markdownFileName, quietMentions, reviewMarkdown } from '../public/markdown.js';
 import { runReview } from '../lib/review.js';
 import { fakeAi, savedReply } from './helpers.js';
 
@@ -119,4 +119,14 @@ test('hidden summary and file names', () => {
   assert.equal(hiddenSummary([{ removedBy: 'limit' }]), '1 AI suggestion hidden: 1 over the limit');
   assert.equal(markdownFileName({ pr: { repo: 'manangoesagain/bookshop-demo', number: 1 } }), 'review-bookshop-demo-1.md');
   assert.equal(markdownFileName({ pr: { repo: '../../etc', number: 2 } }), 'review-etc-2.md');
+});
+
+test('Python names like __init__ stay as they are, not italics', () => {
+  assert.equal(inlineText('Add a test for __init__ and _private'), 'Add a test for \\_\\_init\\_\\_ and \\_private');
+  assert.equal(inlineText('snake_case stays readable'), 'snake_case stays readable');
+});
+
+test('a copied comment never notifies anyone it names', () => {
+  assert.equal(quietMentions('cc @octocat and @org/security-team, please look'), 'cc `@octocat` and `@org/security-team`, please look');
+  assert.equal(quietMentions('mail me at a@b.com'), 'mail me at a@b.com');
 });

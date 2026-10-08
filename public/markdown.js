@@ -35,7 +35,7 @@ export function hiddenSummary(hidden = []) {
 function escapePlain(text) {
   return text
     .replace(/[\\`*[\]<~]/g, '\\$&')
-    .replace(/(?<!\w)_|_(?!\w)/g, '\\_')
+    .replace(/(?<!\w)_+|_+(?!\w)/g, (run) => run.replace(/_/g, '\\_'))
     .replace(/&(?=#?\w+;)/g, '&amp;');
 }
 
@@ -48,6 +48,11 @@ function codeSpan(code) {
 }
 
 const MENTION = /(?<![\w`])(@[A-Za-z0-9][\w-]*(?:[./][\w-]+)*)/;
+
+/** A comment to paste on GitHub as is: every @name becomes code, so pasting it doesn't notify anyone. */
+export function quietMentions(text) {
+  return String(text ?? '').split(MENTION).map((piece, i) => (i % 2 === 1 ? codeSpan(piece) : piece)).join('');
+}
 
 /**
  * One line of item text, safe to paste into GitHub. Code the AI wrapped in backticks
@@ -110,12 +115,14 @@ function summaryLine(review, items) {
     .map(([severity, count]) => `${count} ${SEVERITY_LABELS[severity].toLowerCase()}`);
   const areaNames = (status) => review.areas.filter((a) => a.status === status).map((a, i) => (i === 0 ? a.name : a.name.toLowerCase()));
   const clear = areaNames('clear');
+  const partial = areaNames('partial');
   const unchecked = areaNames('unchecked');
   const sentences = [
     `**${plural(stats.files, 'file')}, +${stats.additions} / -${stats.deletions}.**`,
     counts.length ? `${capitalize(listWords(counts))}.` : 'No problems found.',
   ];
   if (clear.length) sentences.push(`${listWords(clear)} ${clear.length === 1 ? 'looks' : 'look'} good.`);
+  if (partial.length) sentences.push(`Nothing found in the part the AI reviewer read: ${listWords(partial).toLowerCase()}.`);
   if (unchecked.length) sentences.push(`Not checked without the AI reviewer: ${listWords(unchecked).toLowerCase()}.`);
   return sentences.join(' ');
 }

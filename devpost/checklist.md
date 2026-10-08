@@ -93,11 +93,14 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored — after slice 5, the first run on Priyansu's PC with his NVIDIA key and a real public PR (first live GitHub and AI run; what he notices shapes the prompt, the model and slices 6–8)
+- [x] Early usable behavior explored — after slice 5, the first run on Priyansu's PC with his NVIDIA key and a real public PR (first live GitHub and AI run; what he notices shapes the prompt, the model and slices 6–8)
+  Done 2026-10-07: the first PC run found the retired model and a false must-fix on a test secret (both fixed, see Revisions); the evaluation then drove the praise filter.
 - [ ] Final kick-the-tires exploration and feedback completed
 
 ## Final Review
 
+- [x] Verify: `npm test` (137 pass), `node demo/build-demo.js --check`, `node eval/run-eval.js --fake`, `npm audit` (0 vulnerabilities), and a two-part code review (server and page) with every finding reproduced first. 14 of 15 findings fixed; see `devpost/polish-log.md` > Pass 2.
+- [x] Feedback from Priyansu's own use so far: two redesigns of the app page (their design files), the tour's blue instead of coral, and polish pass 1 (18 loose ends, `devpost/polish-log.md`).
 - [ ] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
@@ -105,6 +108,7 @@ Approved 2026-10-07: Priyansu accepted the build order in the system design doc'
 - [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
 - [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
 - [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+  Generated and checked 2026-10-08 (desktop and phone, light and dark, no network requests); not yet shown.
 
 Activity and evidence: [what actually happened; real document/test/code references; unfinished work if interrupted]
 Route and stops: [actual paths and symbols; guided stops completed, or reference-only route]
@@ -122,3 +126,6 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 - After the first PC run: NVIDIA retired `meta/llama-3.3-70b-instruct` (HTTP 410), so the startup check now sends one tiny request and, if the model doesn't answer, switches to the first working model in a list of current ones. Reasoning models get their thinking turned down so it doesn't use up the answer. `eval/run-eval.js --list` shows the models a key can use.
 - After the first PC run: the "key in the code" rule flagged `const SECRET = 'whsec_test'` in a test file as must-fix. It's now two rules: known key formats (must-fix, every file) and a generic `password = "..."` (worth asking, code and config only, skipping test and mock values).
 - Added a landing page at `/` (Priyansu asked for a design pass using [scroll-world](https://github.com/oso95/scroll-world)): a scroll-driven flight through a three.js miniature world, one island per review area, recorded by `tools/world` instead of paid AI video. The app moved to `/app`, and its light theme and area colours now match the world.
+- The app page (`/app`) follows Priyansu's own design files instead of the spec's plain layout: first a dark design (94142bd), then the paper-and-ink design (12dd436), with the tour's blue as the accent (a730ee6). The review shows in a pop-up over the page.
+- The claim check also hides praise (a `problem: false` verdict, or an item whose fix says there's nothing to do), after the evaluation showed every clean-PR false alarm was praise (eef9865).
+- Final review: a file too big for the AI's size limit is now read in part instead of dropped, and when anything was cut, empty areas show "part read" instead of "looks good" (a fourth area status, `partial`).

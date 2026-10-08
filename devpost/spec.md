@@ -101,7 +101,7 @@ One AI request with all surviving AI items, each with its claim and a snippet of
 PRD ref: `prd.md > Proof and honesty`.
 
 ### Review runner (`lib/review.js`)
-Runs the steps in order, reports progress, chooses AI or basic mode, merges and sorts items (severity, then area order), caps at 3 AI items per area and 12 total, sets area statuses (issues, clear, unchecked), and builds the Review object with stats and notes.
+Runs the steps in order, reports progress, chooses AI or basic mode, merges and sorts items (severity, then area order), caps at 3 AI items per area and 12 total, sets area statuses (issues, clear, unchecked, or partial when the AI read only part of the PR), and builds the Review object with stats and notes.
 PRD ref: `prd.md > The Core Journey`.
 
 ### Markdown export (`public/markdown.js`)

@@ -4,6 +4,65 @@ A running log of small fixes to the local web app (the tour at `/` and the app a
 Each pass starts with an audit list, then each item is fixed one at a time and marked here
 with what changed and how it was checked. Newest pass at the top.
 
+## Pass 2 · 2026-10-08 · final code review
+
+Part of the build's final review. Two reviewers read every file: one the server and `lib/`,
+one the page (`public/`). Each finding was reproduced (a timed script, a Playwright run, or a
+stubbed review full of hostile text) before it was fixed, and re-run after. No XSS was found:
+text from a PR or the AI never becomes HTML, and the Markdown export neutralises `<`, links and
+@mentions.
+
+| # | Where | What was wrong | Status |
+|---|-------|----------------|--------|
+| 1 | Pattern hints | One very long added line (80,000 characters of `WHERE WHERE …`) made the SQL and loop patterns take seconds; a 1 MB paste could freeze the server for minutes. | fixed |
+| 2 | AI prompt | A file bigger than the AI's size limit was dropped whole, yet the empty areas still said "looks good", and a PR made of one huge file sent the AI an empty diff. | fixed |
+| 3 | Startup | With port 3000 already taken, it printed "running at http://localhost:3000" before the "port in use" message (Express 5 calls the listen callback with the error). | fixed |
+| 4 | Samples | `{"sample":"constructor"}` got past the sample-name check and gave "Something went wrong" instead of "There is no sample with that name." | fixed |
+| 5 | GitHub | A README that timed out failed the whole review, and an empty README from a GitHub hiccup stayed in the 10-minute cache. | fixed |
+| 6 | Links | Links for removed lines point at the PR's base commit; if the base branch changed that file after the PR branched, the line number can be off. | known, left as is |
+| 7 | Pop-up | Keyboard focus wasn't returned to the button that started a review (a disabled button loses focus). | fixed |
+| 8 | Pop-up | Retry on a fallback review re-ran the last attempted PR, not the one it was shown on. | fixed |
+| 9 | Pop-up | Tab could escape the pop-up after clicking plain text, after Retry, or after "Show all". | fixed |
+| 10 | Copy comment | The copied comment kept @mentions, so pasting it could notify people or teams. | fixed |
+| 11 | Pop-up | Opening `/app?sample=1` and clicking "Try the example PR" quickly ran two reviews that fought over the pop-up and left a timer running. | fixed |
+| 12 | Markdown | Python names like `__init__` came out in italics. | fixed |
+| 13 | Pop-up, phones | A long file path pushed the pop-up sideways at 375 px. | fixed |
+| 14 | Both | Several greys were below the 4.5:1 contrast minimum (the small note under the link box was 2.3:1). | fixed |
+| 15 | Pop-up | Screen readers would read the seconds counter out every second, but never the step names. | fixed |
+
+### Fixes
+
+1. `lib/hints.js`: lines over 1,000 characters (minified or generated code) are skipped by the
+   pattern checks (`MAX_HINT_LINE`). Checked: the 80,000-character line now takes no time, and a
+   worst-case 1 MB paste of 999-character lines takes 0.4 s instead of minutes.
+2. `lib/prompt.js`: the first file that doesn't fit is read in part, whole lines up to the
+   limit, ending with "[the rest of this file was cut to fit]". `lib/review.js`: if the AI could
+   read nothing, it isn't asked and the review says why; when anything was cut, empty areas
+   show "part read" instead of "looks good", and the note names the partly read file.
+3. `server.js`: the listen callback returns early when it gets an error. Checked: with the port
+   held, only "Port … is already in use" is printed.
+4. `lib/review.js`: sample names are looked up with `Object.hasOwn`.
+5. `lib/github.js`: README problems return an empty README and the PR isn't cached, so the
+   next try reads it again; a README that doesn't exist (404) is still cached as empty.
+6. Not changed: a link to GitHub's "Files changed" tab would need GitHub's own file anchors,
+   which couldn't be checked from here, and new-line links (most items) aren't affected.
+7–9, 11. `public/app.js`: the opener is remembered before buttons are disabled; focus goes
+   back to it, or to the link box if it's still disabled; Tab and Shift+Tab treat focus on the
+   card or outside it as the edge; Retry moves focus to Cancel and "Show all" to its chip; a
+   review replaced by a newer one no longer touches the page; the timer is cleared before a new
+   one starts; Retry uses the request that made the review on screen (`state.reviewBody`).
+10. `public/markdown.js`: `quietMentions` puts each @name in code, used by Copy comment.
+12. `public/markdown.js`: runs of underscores at a word's edge are escaped one by one.
+13. `public/styles.css`: file paths in "What was checked" and hidden items wrap anywhere.
+14. `public/styles.css`: paper greys are now `#666863` (4.95:1); in the pop-up `--faint` is
+    `#858e9b` (5.6:1), `--muted` `#a2abb7`, and the small label uses the light blue.
+15. `public/app.html`: the seconds counter is hidden from screen readers and a hidden status
+    line announces each step.
+
+Checked together: `npm test` (137 pass, 8 new tests for items 1, 2, 4, 5, 10 and 12), the
+reviewers' Playwright scripts re-run (focus, Tab, Retry, overlap, long paths, contrast, no
+page scroll at 375 to 1920 px), and screenshots of the app and the pop-up.
+
 ## Pass 1 · 2026-10-08
 
 Asked by Priyansu: "there are some here's and there's in the local web app, patch those up.

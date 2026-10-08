@@ -79,3 +79,29 @@ test('without an AI client, no AI steps run', async () => {
   assert.equal(review.mode, 'basic');
   assert.equal(review.aiError, null);
 });
+
+test('when the AI read only part of a PR, empty areas say so instead of "looks good"', async () => {
+  const lines = Array.from({ length: 1500 }, (_, i) => `+export const line${i} = ${'x'.repeat(40)};`).join('\n');
+  const diff = `--- a/src/big.js\n+++ b/src/big.js\n@@ -0,0 +1,1500 @@\n${lines}\n--- a/test/big.test.js\n+++ b/test/big.test.js\n@@ -0,0 +1,1 @@\n+test('x', () => {});\n`;
+  const review = await runReview({ diff }, { ai: fakeAi(['{"items":[],"clear":["security","tests","breaking","docs","performance"]}']), claimCheck: false });
+  assert.equal(review.mode, 'ai');
+  const status = Object.fromEntries(review.areas.map((a) => [a.id, a.status]));
+  assert.equal(status.security, 'partial');
+  assert.equal(status.performance, 'partial');
+  assert.equal(status.tests, 'clear'); // A test file changed, which the counted facts settle.
+  assert.ok(review.notes.some((n) => /read only the first part of src\/big\.js/.test(n)), review.notes.join(' | '));
+});
+
+test('when the AI can\'t read any of the PR, it isn\'t asked and the review is the basic one', async () => {
+  const ai = fakeAi([]);
+  const review = await runReview({ diff: `--- a/src/min.js\n+++ b/src/min.js\n@@ -0,0 +1,1 @@\n+${'y'.repeat(70_000)}\n` }, { ai });
+  assert.equal(ai.calls.length, 0);
+  assert.equal(review.mode, 'basic');
+  assert.match(review.aiError, /too big for the AI reviewer/);
+});
+
+test('sample names are only the two samples, never built-in object names', async () => {
+  for (const name of ['constructor', 'toString', '__proto__', 'nope']) {
+    await assert.rejects(runReview({ sample: name }), { code: 'bad-request', message: 'There is no sample with that name.' });
+  }
+});

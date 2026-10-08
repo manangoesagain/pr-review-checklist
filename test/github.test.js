@@ -220,3 +220,22 @@ test('a PR with no changed files says so plainly', async () => {
   await assert.rejects(runReview({ url: DEMO }, { github: createGitHubReader({ fetchImpl: fakeGitHub(sample).fetchImpl }) }),
     { code: 'nothing-to-review', message: 'Nothing to review: this PR has no changed files.' });
 });
+
+test('a README that fails to load doesn\'t stop the review, and isn\'t kept in the cache', async () => {
+  let readmeCalls = 0;
+  const failing = fakeGitHub(loadSample('demo'), {
+    '/readme': () => {
+      readmeCalls++;
+      if (readmeCalls === 1) throw new TypeError('fetch failed');
+      return new Response('# Bookshop API');
+    },
+  });
+  const reader = createGitHubReader({ fetchImpl: failing.fetchImpl });
+  const first = await reader.readPr(parsePrLink(DEMO));
+  assert.equal(first.readme, '');
+  const second = await reader.readPr(parsePrLink(DEMO));
+  assert.equal(second.fromCache, false);
+  assert.equal(second.readme, '# Bookshop API');
+  const third = await reader.readPr(parsePrLink(DEMO));
+  assert.equal(third.fromCache, true);
+});

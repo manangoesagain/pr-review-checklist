@@ -155,3 +155,12 @@ test('more than 3 matches of one rule: 3 items, the first says how many', () => 
   assert.equal(items.length, 3);
   assert.equal(items[0].detail, 'Found on 5 lines in this PR; the first 3 are listed.');
 });
+
+test('very long lines are skipped, so a crafted line can\'t slow the server down', () => {
+  const long = `const q = \`${'WHERE '.repeat(20_000)}\${id}\`;`;
+  const started = performance.now();
+  const hints = hintsForText(added('src/app.js', long, 'for (const id of ids) {', `  await db.query(${'x, '.repeat(30_000)})`, '}'));
+  assert.ok(performance.now() - started < 1000, 'finished quickly');
+  assert.deepEqual(hints.filter((h) => h.area === 'security' || h.area === 'performance'), []);
+  assert.equal(keys(hintsForText(added('src/app.js', 'const q = `SELECT * FROM t WHERE id = ${id}`;'))).length, 1);
+});

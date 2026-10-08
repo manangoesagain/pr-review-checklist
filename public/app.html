@@ -131,10 +131,11 @@
         <button class="modal-close" id="modal-close" type="button" aria-label="Close the review">×</button>
       </div>
       <div class="modal-panel">
-        <div id="loading-view" class="loading-view" hidden aria-live="polite">
+        <div id="loading-view" class="loading-view" hidden>
+          <p class="visually-hidden" id="step-status" role="status" aria-live="polite"></p>
           <span class="loader" aria-hidden="true"></span>
           <ol class="steps" id="steps"></ol>
-          <p class="loading-meta"><span id="elapsed">0</span> s <span class="dot" aria-hidden="true">·</span> <button type="button" class="link" id="cancel-btn">Cancel</button></p>
+          <p class="loading-meta"><span aria-hidden="true"><span id="elapsed">0</span> s</span> <span class="dot" aria-hidden="true">·</span> <button type="button" class="link" id="cancel-btn">Cancel</button></p>
         </div>
         <div id="results-view" class="results-view" hidden aria-live="polite"></div>
       </div>

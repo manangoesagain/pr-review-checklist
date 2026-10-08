@@ -2,11 +2,12 @@
 // streams back, then draws the checklist. Everything from the server is put on
 // the page with textContent, never as HTML, so code in a PR can't run here.
 
-import { hiddenSummary, markdownFileName, reviewMarkdown, SEVERITY_LABELS } from './markdown.js';
+import { hiddenSummary, markdownFileName, quietMentions, reviewMarkdown, SEVERITY_LABELS } from './markdown.js';
 
 const SEVERITY_ORDER = ['must-fix', 'worth-asking', 'good-to-know'];
 const AREA_ORDER = ['security', 'tests', 'breaking', 'docs', 'performance'];
 const CHIP_NAMES = { security: 'Security', tests: 'Tests', breaking: 'Breaking', docs: 'Docs', performance: 'Performance' };
+const CHIP_STATES = { clear: 'looks good', partial: 'part read', unchecked: 'not checked' };
 const STEP_LABELS = { fetch: 'Fetching PR', facts: 'Checking facts', ai: 'Asking the reviewer', verify: 'Checking every line' };
 const DIFF_EXAMPLE = '--- a/src/app.js\n+++ b/src/app.js\n@@ -1,2 +1,2 @@';
 
@@ -14,8 +15,8 @@ const $ = (selector) => document.querySelector(selector);
 
 const state = {
   health: { ai: false, model: null, problem: null },
-  lastBody: null,
   review: null,
+  reviewBody: null, // the request that made state.review, for its Retry button
   controller: null,
   pasteMode: false,
   filter: null,
@@ -93,7 +94,9 @@ function closeModal() {
   modal.classList.remove('is-open');
   modal.hidden = true;
   document.body.classList.remove('modal-open');
-  lastFocus?.focus?.();
+  // Back to whatever opened the pop-up; a button that's still disabled can't take focus, so the input does.
+  const back = lastFocus?.isConnected && !lastFocus.disabled && lastFocus !== document.body ? lastFocus : null;
+  (back ?? (state.pasteMode ? $('#diff-text') : $('#pr-url'))).focus({ preventScroll: Boolean(back) });
 }
 
 // Closing while a review runs cancels it.
@@ -146,6 +149,7 @@ function renderSteps(steps) {
 }
 
 function markStep(step) {
+  $('#step-status').textContent = `${STEP_LABELS[step] ?? step}…`;
   const items = [...$('#steps').children];
   let index = items.findIndex((li) => li.dataset.step === step);
   if (index === -1) {
@@ -159,6 +163,7 @@ function markStep(step) {
 }
 
 function startTimer() {
+  clearInterval(state.timer);
   const started = performance.now();
   $('#elapsed').textContent = '0';
   state.timer = setInterval(() => {
@@ -202,36 +207,49 @@ async function streamReview(body, signal, onStep) {
 }
 
 async function startReview(body) {
-  state.lastBody = body;
   hideError();
   state.controller?.abort();
   const controller = new AbortController();
   state.controller = controller;
 
+  // Remember the button that started this before it's disabled (a disabled button loses focus).
+  const opener = document.activeElement;
+  const wasOpen = !$('#review-modal').hidden;
   setBusy(true);
   renderSteps(plannedSteps(body));
+  $('#step-status').textContent = '';
   showView('loading');
+  if (!wasOpen) lastFocus = opener;
+  else $('#cancel-btn').focus(); // Retry inside the pop-up: its button just disappeared.
   startTimer();
+  // A review that was replaced by a newer one must not touch the page.
+  const current = () => state.controller === controller;
   try {
     const result = await streamReview(body, controller.signal, markStep);
+    if (!current()) return;
     if (result.error) {
       showView('start');
       showError(result.error);
     } else {
       state.review = result.review;
+      state.reviewBody = body;
       renderResults(result.review);
       showView('results');
       $('.modal-card').scrollTop = 0;
+      $('#modal-close').focus();
     }
   } catch (error) {
+    if (!current()) return;
     showView('start');
     if (error.name !== 'AbortError') {
       showError({ code: 'network', message: 'Couldn\'t reach the app\'s server. Is it still running? Start it again with npm start.' });
     }
   } finally {
-    stopTimer();
-    setBusy(false);
-    if (state.controller === controller) state.controller = null;
+    if (current()) {
+      stopTimer();
+      setBusy(false);
+      state.controller = null;
+    }
   }
 }
 
@@ -284,7 +302,7 @@ function itemNode(item, open) {
     item.comment ? el('blockquote', { class: 'comment', 'aria-label': 'Suggested comment' }, item.comment) : null,
     el('div', { class: 'item-foot' },
       el('span', { class: 'tag', text: provenance(item) }),
-      item.comment ? el('button', { type: 'button', class: 'btn btn-small', text: 'Copy comment', onclick: () => copyText(item.comment, 'Comment copied') }) : null),
+      item.comment ? el('button', { type: 'button', class: 'btn btn-small', text: 'Copy comment', onclick: () => copyText(quietMentions(item.comment), 'Comment copied') }) : null),
   );
 
   const toggle = el('button', { type: 'button', class: 'item-toggle', 'aria-expanded': String(open), 'aria-controls': bodyId },
@@ -320,7 +338,7 @@ function chipNode(area) {
   const top = area.items.map((i) => i.severity).sort((a, b) => SEVERITY_ORDER.indexOf(a) - SEVERITY_ORDER.indexOf(b))[0];
   const badge = area.status === 'issues'
     ? el('span', { class: 'chip-count', text: area.items.length })
-    : el('span', { class: 'chip-state', text: area.status === 'clear' ? 'looks good' : 'not checked' });
+    : el('span', { class: 'chip-state', text: CHIP_STATES[area.status] ?? 'not checked' });
   const chip = el('button', {
     type: 'button',
     class: `chip${top ? ` sev-${top}` : ''}${area.status === 'clear' ? ' is-clear' : ''}`,
@@ -343,11 +361,16 @@ function setFilter(areaId) {
     note.hidden = true;
     return;
   }
-  const verdict = area.status === 'clear' ? 'looks good' : 'not checked in basic mode';
+  const verdict = { clear: 'looks good', partial: 'nothing found in the part the AI reviewer read' }[area.status] ?? 'not checked in basic mode';
   const text = area.items.length > 0
     ? `Showing ${area.name.toLowerCase()} only. `
     : `${area.name}: ${verdict}${area.note ? ` (${area.note})` : ''}. `;
-  note.replaceChildren(text, el('button', { type: 'button', class: 'link', text: 'Show all', onclick: () => setFilter(null) }));
+  note.replaceChildren(text, el('button', {
+    type: 'button',
+    class: 'link',
+    text: 'Show all',
+    onclick: () => { setFilter(null); document.querySelector(`.chip[data-area="${areaId}"]`)?.focus(); },
+  }));
   note.hidden = false;
 }
 
@@ -361,7 +384,7 @@ function basicBanner(review) {
         type: 'button',
         class: 'btn btn-small',
         text: 'Retry',
-        onclick: () => { if (state.lastBody && !state.controller) startReview(state.lastBody); },
+        onclick: () => { if (state.reviewBody && !state.controller) startReview(state.reviewBody); },
       }));
   }
   return el('div', { class: 'banner', role: 'note' },
@@ -598,8 +621,10 @@ document.addEventListener('keydown', (event) => {
     if (focusable.length === 0) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
-    if (event.shiftKey && (document.activeElement === first || !card.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    // Focus on the card itself (a click on plain text) or outside it counts as the edge too.
+    const outside = document.activeElement === card || !card.contains(document.activeElement);
+    if (event.shiftKey && (outside || document.activeElement === first)) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && (outside || document.activeElement === last)) { event.preventDefault(); first.focus(); }
   }
 });
 
@@ -608,6 +633,6 @@ loadHealth().then(() => {
   // The landing page's "Try the sample" button opens /app?sample=1.
   if (new URLSearchParams(location.search).has('sample')) {
     history.replaceState(null, '', location.pathname);
-    startReview({ sample: true });
+    if (!state.controller) startReview({ sample: true });
   }
 });

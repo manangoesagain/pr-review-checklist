@@ -64,8 +64,8 @@
   --border: #2d343e;
   --border-strong: #465364;
   --text: #e7e9ed;
-  --muted: #8e97a3;
-  --faint: #6b7583;
+  --muted: #a2abb7;
+  --faint: #858e9b;
   --accent: var(--brand);
   --accent-hover: #4a76e0;
   --accent-text: #9cb9ff;
@@ -124,7 +124,7 @@ a:hover { text-decoration: underline; }
   color: var(--paper); background: var(--ink); font-size: 14px; line-height: 1;
 }
 .nav nav { display: flex; gap: 30px; }
-.nav nav a { position: relative; padding: 9px 0; color: #7e7d77; }
+.nav nav a { position: relative; padding: 9px 0; color: #666863; }
 .nav nav a:hover { color: var(--ink); text-decoration: none; }
 .nav nav a.selected { color: var(--ink); }
 .nav nav a.selected::after { content: ""; position: absolute; bottom: 0; left: 0; width: 14px; height: 2px; background: var(--brand); }
@@ -139,7 +139,7 @@ a:hover { text-decoration: underline; }
 
 /* Hero */
 .hero { display: grid; grid-template-columns: minmax(0, 0.86fr) minmax(520px, 1.14fr); gap: 76px; align-items: center; padding: 101px 0 126px; }
-.eyebrow { display: flex; align-items: center; gap: 11px; margin: 0; color: #777972; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
+.eyebrow { display: flex; align-items: center; gap: 11px; margin: 0; color: #666863; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
 .eyebrow b { width: 24px; height: 1px; background: var(--brand); }
 .eyebrow span:first-child { color: var(--brand); font-weight: 800; }
 .promise, .section-copy h2, .closing h2 {
@@ -181,7 +181,7 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 .note-button:disabled { opacity: 0.55; cursor: not-allowed; }
 .note-button span { padding-left: 5px; color: var(--brand); font-size: 17px; }
 .hero-note .link { font-size: 12px; }
-.note-small { color: #a09f98; font-size: 10px; }
+.note-small { color: #666863; font-size: 10px; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -276,23 +276,23 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 /* How it works */
 .method { display: grid; grid-template-columns: 0.83fr 1.17fr; gap: 110px; padding: 130px 0 140px; }
 .section-copy h2, .closing h2 { font-size: clamp(49px, 5.5vw, 76px); margin-top: 27px; }
-.section-copy > p { max-width: 300px; color: #74766f; font-size: 14px; line-height: 1.7; }
+.section-copy > p { max-width: 300px; color: #666863; font-size: 14px; line-height: 1.7; }
 .method-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
 .method-list li { display: grid; grid-template-columns: 46px 1fr; gap: 18px; align-items: start; padding: 25px 0; border-bottom: 1px solid var(--line); transition: padding 0.2s, background 0.2s; }
 .method-list li:hover { padding-left: 8px; padding-right: 8px; background: rgba(47, 95, 208, 0.05); }
 .list-number { color: var(--brand); font-size: 11px; font-weight: 800; }
 .method-list h3 { margin: 0 0 8px; color: var(--ink); font-size: 18px; letter-spacing: -0.04em; }
-.method-list p { max-width: 440px; margin: 0; color: #777a74; font-size: 13px; line-height: 1.55; }
+.method-list p { max-width: 440px; margin: 0; color: #666863; font-size: 13px; line-height: 1.55; }
 .method-list code { color: var(--ink); }
 
 /* Closing and footer */
 .closing { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 100px; align-items: end; padding: 106px 0 126px; border-top: 1px solid var(--line); }
 .closing-number { color: var(--brand); font-size: 11px; font-weight: 800; }
 .closing h2 { margin-bottom: 0; }
-.privacy { max-width: 340px; margin: 0 0 12px; color: #74766f; font-size: 13.5px; line-height: 1.7; }
+.privacy { max-width: 340px; margin: 0 0 12px; color: #666863; font-size: 13.5px; line-height: 1.7; }
 .closing-button { margin-top: 12px; background: var(--brand); }
 .closing-button:hover { background: var(--ink); }
-.footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 72px; border-top: 1px solid var(--line); color: #83847e; font-size: 10px; letter-spacing: 0.08em; }
+.footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 72px; border-top: 1px solid var(--line); color: #666863; font-size: 10px; letter-spacing: 0.08em; }
 .footer b, .footer a { color: var(--ink); }
 .footer a { font-weight: 700; }
 
@@ -310,7 +310,7 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
   position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
   padding: 22px 24px 18px; border-bottom: 1px solid var(--border); background: var(--bg);
 }
-.modal-kicker { display: block; margin-bottom: 8px; color: var(--brand); font-size: 9px; letter-spacing: 0.16em; }
+.modal-kicker { display: block; margin-bottom: 8px; color: var(--accent-text); font-size: 9px; letter-spacing: 0.16em; }
 .modal-header h2 { margin: 0; color: #f2f3f5; font-size: 23px; letter-spacing: -0.05em; }
 .modal-close {
   flex: none; width: 31px; height: 31px; border: 1px solid #414c5b; border-radius: 6px; color: #b4bbc5; background: #1b2028;
@@ -440,10 +440,11 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 .hidden-row p { margin: 0; }
 .hidden-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
 .hidden-list li {
-  display: grid; gap: 2px; padding: 10px 12px; border: 1px dashed var(--border-strong); border-radius: var(--radius); background: transparent;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 10px 12px; border: 1px dashed var(--border-strong); border-radius: var(--radius); background: transparent;
 }
 .hidden-title { color: var(--text); font-weight: 550; text-decoration: line-through; text-decoration-color: var(--faint); }
 .hidden-ref { font-size: 12.5px; color: var(--faint); }
+.checked code, .hidden-ref, .hidden-title { overflow-wrap: anywhere; }
 .hidden-reason { font-size: 13.5px; }
 
 .checked { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 12px; font-size: 14px; color: var(--muted); }

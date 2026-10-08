@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR Review Checklist · App map</title>
+<style>
+  :root {
+    --paper: #f2f0ea; --card: #fbfaf6; --ink: #101217; --muted: #555a66;
+    --line: #d9d5ca; --brand: #2f5fd0; --brand-soft: #e3e9f8; --code: #ece9e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12141a; --card: #1a1d25; --ink: #eceae4; --muted: #a3a7b2;
+      --line: #2e323d; --brand: #7d9cf0; --brand-soft: #1e2840; --code: #22262f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 16px 64px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 1.25rem; margin: 40px 0 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+  p { margin: 0 0 12px; }
+  .lede { color: var(--muted); font-size: 1.05rem; }
+  code { font: 0.92em ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--code); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  pre { background: var(--code); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 8px 0 12px; }
+  pre code { background: none; padding: 0; }
+  a { color: var(--brand); }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin: 12px 0; }
+  .pieces { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 0; list-style: none; }
+  .pieces li { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .pieces strong { display: block; }
+  .stop { display: grid; grid-template-columns: 40px 1fr; gap: 12px; }
+  .num { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .where { font-size: 0.95rem; color: var(--muted); }
+  details { margin-top: 8px; }
+  summary { cursor: pointer; color: var(--brand); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  .flow-wrap { overflow-x: auto; }
+  .flow { width: 100%; min-width: 640px; height: auto; display: block; }
+  .flow text { fill: var(--ink); font: 13px system-ui, sans-serif; }
+  .flow .small { fill: var(--muted); font-size: 11.5px; }
+  .flow rect { fill: var(--card); stroke: var(--line); }
+  .flow rect.ext { fill: var(--brand-soft); stroke: var(--brand); stroke-dasharray: 4 3; }
+  .flow rect.hit { stroke: var(--brand); stroke-width: 2; }
+  .flow path { stroke: var(--muted); fill: none; stroke-width: 1.5; }
+  .flow .arrow { fill: var(--muted); }
+  footer { margin-top: 48px; color: var(--muted); font-size: 0.9rem; }
+  @media (max-width: 600px) { h1 { font-size: 1.6rem; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>PR Review Checklist: app map</h1>
+  <p class="lede">A one-page guide to where things live in this app, so you know where to start when you want to change something. It is a snapshot of the code at the commit named at the bottom, so it can drift as the code changes.</p>
+
+  <h2>What the app does</h2>
+  <p>You paste a link to a public GitHub pull request (or a diff). The app reads the changed lines, asks an AI for a short checklist in five areas (security, tests, breaking changes, docs, performance), and then <strong>checks every item against the real code</strong> before showing it. Anything it can't prove is hidden, and the review tells you how many were hidden and why.</p>
+  <ul class="pieces">
+    <li><strong>The page</strong><code>public/app.html</code>, <code>public/app.js</code>, <code>public/styles.css</code></li>
+    <li><strong>The server</strong><code>server.js</code>: one route, <code>POST /api/review</code>, that streams progress</li>
+    <li><strong>The review steps</strong><code>lib/</code>: one small file per step, run in order by <code>lib/review.js</code></li>
+    <li><strong>The checklist questions</strong><code>rules/*.json</code>: the questions and code patterns per area</li>
+  </ul>
+
+  <h2>One action, end to end: clicking "Review it"</h2>
+  <div class="flow-wrap" tabindex="0" aria-label="Diagram, scrolls sideways on small screens">
+  <svg class="flow" viewBox="0 0 820 300" role="img" aria-labelledby="flow-title flow-desc">
+    <title id="flow-title">What happens when you click Review it</title>
+    <desc id="flow-desc">The page sends the link to the server. The server reads the pull request from GitHub, finds facts and pattern hints, asks the AI for a checklist, runs the line check and the claim check, and streams the checked review back to the page's pop-up.</desc>
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+    <rect class="hit" x="10" y="20" width="170" height="64" rx="8"/>
+    <text x="24" y="46">1. You click Review it</text>
+    <text class="small" x="24" y="66">public/app.js · startReview</text>
+    <rect x="230" y="20" width="170" height="64" rx="8"/>
+    <text x="244" y="46">server.js</text>
+    <text class="small" x="244" y="66">POST /api/review</text>
+    <rect class="hit" x="450" y="20" width="170" height="64" rx="8"/>
+    <text x="464" y="46">2. lib/review.js</text>
+    <text class="small" x="464" y="66">runReview runs each step</text>
+    <rect class="ext" x="660" y="20" width="150" height="64" rx="8"/>
+    <text x="674" y="46">GitHub API</text>
+    <text class="small" x="674" y="66">lib/github.js</text>
+    <rect x="450" y="120" width="170" height="64" rx="8"/>
+    <text x="464" y="146">Facts and hints</text>
+    <text class="small" x="464" y="166">lib/facts.js · lib/hints.js</text>
+    <rect class="ext" x="660" y="120" width="150" height="64" rx="8"/>
+    <text x="674" y="146">AI (NVIDIA)</text>
+    <text class="small" x="674" y="166">lib/prompt.js · lib/ai.js</text>
+    <rect class="hit" x="450" y="220" width="170" height="64" rx="8"/>
+    <text x="464" y="246">3. Proof checks</text>
+    <text class="small" x="464" y="266">lineCheck · checkClaims</text>
+    <rect x="10" y="220" width="170" height="64" rx="8"/>
+    <text x="24" y="246">Checklist pop-up</text>
+    <text class="small" x="24" y="266">public/app.js · renderResults</text>
+    <path d="M180,52 H226" marker-end="url(#a)"/>
+    <path d="M400,52 H446" marker-end="url(#a)"/>
+    <path d="M620,52 H656" marker-end="url(#a)"/>
+    <path d="M535,84 V116" marker-end="url(#a)"/>
+    <path d="M620,152 H656" marker-end="url(#a)"/>
+    <path d="M535,184 V216" marker-end="url(#a)"/>
+    <path d="M450,252 H184" marker-end="url(#a)"/>
+  </svg>
+  </div>
+
+  <h2>The route: three stops</h2>
+  <p class="where">A reference route. Open the project folder in your editor and use your editor's search (Ctrl+Shift+F in VS Code) for the names in <code>code</code>.</p>
+
+  <div class="card stop">
+    <div class="num" aria-hidden="true">1</div>
+    <div>
+      <p><strong>The button.</strong> <code>public/app.js</code>, search for <code>function startReview</code>.</p>
+      <p>Clicking "Review it" (or "Try the example PR") calls <code>startReview</code>. It opens the pop-up, then <code>streamReview</code> sends the link to <code>/api/review</code> and reads the answer one line at a time. Each line is a step ("fetch", "facts", "ai", "verify"), which is why the progress list ticks along live. The last line is the finished review.</p>
+      <details><summary>What a streamed answer looks like</summary>
+<pre><code>{"step":"fetch"}
+{"step":"facts"}
+{"step":"ai"}
+{"step":"verify"}
+{"review":{"mode":"ai","areas":[ ... ],"hidden":[ ... ]}}</code></pre>
+      </details>
+    </div>
+  </div>
+
+  <div class="card stop">
+    <div class="num" aria-hidden="true">2</div>
+    <div>
+      <p><strong>The steps, in order.</strong> <code>lib/review.js</code>, search for <code>export async function runReview</code>.</p>
+      <p>This one function is the whole review. It reads the PR (<code>lib/github.js</code>), counts plain facts such as "no test files changed" (<code>lib/facts.js</code>), finds pattern hints such as SQL built from text (<code>lib/hints.js</code> with <code>rules/*.json</code>), and then asks the AI. If the AI fails for any reason, it still returns the facts and hints as a basic checklist, so you always get something.</p>
+      <p>The AI's instructions are in <code>lib/prompt.js</code>, <code>function systemPrompt</code>. Every diff line is sent with a label like <code>R15</code> (new line 15), and the AI must quote the exact line it means.</p>
+    </div>
+  </div>
+
+  <div class="card stop">
+    <div class="num" aria-hidden="true">3</div>
+    <div>
+      <p><strong>The proof.</strong> <code>lib/verify.js</code>, search for <code>export function lineCheck</code>; then <code>lib/claims.js</code>, <code>export async function checkClaims</code>.</p>
+      <p><code>lineCheck</code> keeps an AI item only if its file exists in the PR, its line label exists, and its quoted code really is on that line. <code>checkClaims</code> then asks the AI a second, sceptical question about each item ("is this really a problem on this line?") and hides the ones that aren't, including praise dressed up as a problem. Hidden items are listed at the bottom of the review with the reason.</p>
+    </div>
+  </div>
+
+  <h2>To change this, start here</h2>
+  <table>
+    <thead><tr><th scope="col">You want to change</th><th scope="col">Start here</th></tr></thead>
+    <tbody>
+      <tr><td>Words or buttons on the app page</td><td><code>public/app.html</code> (e.g. search <code>Review it</code>)</td></tr>
+      <tr><td>Colours and spacing</td><td><code>public/styles.css</code>, the variables at the top (the blue is <code>--brand</code>)</td></tr>
+      <tr><td>The questions the AI works through per area</td><td><code>rules/security.json</code> and the other four, the <code>"questions"</code> list</td></tr>
+      <tr><td>A code pattern the app flags without the AI</td><td><code>rules/*.json</code>, the <code>"hints"</code> list; matching code is in <code>lib/hints.js</code></td></tr>
+      <tr><td>How the AI is told to answer</td><td><code>lib/prompt.js</code>, <code>systemPrompt</code></td></tr>
+      <tr><td>Which AI model is used</td><td><code>AI_MODEL=</code> in your <code>.env</code> file (the default is in <code>lib/env.js</code>)</td></tr>
+      <tr><td>What the copied Markdown looks like</td><td><code>public/markdown.js</code>, <code>reviewMarkdown</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>A practice to reuse</h2>
+  <div class="card">
+    <p><strong>Don't trust what an AI says; make it point at proof you can check, and measure it.</strong></p>
+    <p>In this app the AI must cite a line label and quote the line (<code>lib/prompt.js</code>), the code checks the quote against the real diff (<code>lib/verify.js</code>, <code>lineCheck</code>), and a second sceptical pass catches the rest (<code>lib/claims.js</code>). A fixed test set measured the result: <code>node eval/run-eval.js --runs 3</code> reviews a demo PR with 5 planted problems and a clean PR with none. Before the praise filter it raised about 3 false alarms per run on the clean PR; after it, 0.3, while still finding 14 of the 15 planted problems (runs on 2026-10-07 and 2026-10-08).</p>
+    <p>The same idea works in other projects: ask the AI for an answer in a shape your code can check against real data, throw away what doesn't check out, and keep a small fixed test set so you can tell whether a change made things better or worse.</p>
+  </div>
+
+  <h2>Run it again</h2>
+  <ol>
+    <li>Open a terminal in the project folder.</li>
+    <li>First time only: <code>npm install</code>. Put your NVIDIA key in <code>.env</code> as <code>NVIDIA_API_KEY=...</code> (without it the app still runs, in basic mode).</li>
+    <li><code>npm start</code>, then open <a href="http://localhost:3000/app">http://localhost:3000/app</a>. Keep the terminal open while you use it.</li>
+    <li>Tests: <code>npm test</code>.</li>
+  </ol>
+
+  <footer>Made from commit <code>COMMIT_PLACEHOLDER</code> of github.com/manangoesagain/pr-review-checklist. This page is a snapshot; if the code has moved on, the names above are still the best place to search from.</footer>
+</main>
+</body>
+</html>
