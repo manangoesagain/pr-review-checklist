@@ -41,6 +41,26 @@ test('confirmed, unsure and rejected each do the right thing', async () => {
   assert.match(result.hidden[0].reason, /^the second check rejected it: The query uses a \? placeholder/);
 });
 
+test('a claim the checker marks as not a problem is hidden as praise, even if confirmed', async () => {
+  const { diff, items } = aiItems();
+  const [sql] = items;
+  const result = await checkClaims(fakeAi(['{"verdicts":[{"id":1,"problem":false,"verdict":"confirmed","reason":"It only says a parameterized query is used."}]}']), [sql], diff);
+  assert.deepEqual(result.items, []);
+  assert.equal(result.hidden.length, 1);
+  assert.match(result.hidden[0].reason, /^it describes something done well, not a problem: It only says/);
+});
+
+test('items whose fix says there is nothing to do never reach the checker', async () => {
+  const { diff, items } = aiItems();
+  const praise = [{ ...items[0], title: 'README updated', fix: 'No change needed.' }, { ...items[1], title: 'Test added', fix: '' }];
+  const ai = fakeAi([]);
+  const result = await checkClaims(ai, praise, diff);
+  assert.equal(ai.calls.length, 0);
+  assert.deepEqual(result.items, []);
+  assert.deepEqual(result.hidden.map((h) => h.title), ['README updated', 'Test added']);
+  assert.match(result.hidden[0].reason, /done well rather than a problem/);
+});
+
 test('an unsure must-fix drops to worth asking', async () => {
   const { diff, items } = aiItems();
   const [sql] = items;
