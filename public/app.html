@@ -5,90 +5,131 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PR Review Checklist</title>
   <meta name="description" content="Paste a GitHub pull request link and get the checklist a careful senior reviewer would run, with every item proven against the real code.">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="light">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233b82f6'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="shell topbar-inner">
-      <a class="wordmark" href="/app">
-        <svg class="wordmark-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path d="M9 16.5l4.5 4.5L23 11.5"/></svg>
-        PR Review Checklist
-      </a>
-      <span class="topbar-end">
-        <span id="mode-pill" class="pill" hidden></span>
-        <a class="tour-link" href="/">Take the tour <span aria-hidden="true">↗</span></a>
-      </span>
+  <header class="nav shell">
+    <a class="wordmark" href="/app"><span class="wordmark-symbol" aria-hidden="true">✓</span><span>PR Review Checklist</span></a>
+    <nav aria-label="Page">
+      <a class="selected" href="#main">Review</a>
+      <a href="#method">How it works</a>
+      <a href="/">Take the tour</a>
+    </nav>
+    <div class="nav-meta">
+      <span id="mode-pill" class="pill" hidden></span>
+      <a class="nav-github" href="https://github.com/manangoesagain/pr-review-checklist" target="_blank" rel="noreferrer">GitHub ↗</a>
     </div>
   </header>
 
   <main id="main">
     <section class="hero shell">
       <div class="hero-copy">
-        <p class="eyebrow"><span class="eyebrow-line"></span> A second pair of eyes for every merge</p>
-        <h1 class="promise" id="promise">Paste a pull request.<br><em>Get the checklist</em><br>a senior reviewer would run.</h1>
-        <p class="hero-subcopy">Find the sharp edges before they reach production. Security, tests, breaking changes, docs and performance, each pointing at the exact line.</p>
+        <p class="eyebrow"><span>01</span><b></b><span>PR review, without the theatre</span></p>
+        <h1 class="promise" id="promise">The last<br><i>good question</i><br>before merge.</h1>
+        <p class="lede">Paste a pull request link. Get the checklist a senior reviewer would run: security, tests, breaking changes, docs and performance, each pointing at the exact line.</p>
 
         <form id="review-form" class="review-form" novalidate>
           <div class="input-row" id="link-row">
-            <label class="visually-hidden" for="pr-url">Pull request link</label>
-            <input id="pr-url" name="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"
-                   placeholder="https://github.com/owner/repo/pull/123">
-            <button type="submit" class="btn btn-primary btn-hero" id="review-btn"><span>Review PR</span><span class="btn-arrow" aria-hidden="true">→</span></button>
+            <div class="url-field">
+              <label class="visually-hidden" for="pr-url">Pull request link</label>
+              <input id="pr-url" name="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"
+                     placeholder="https://github.com/owner/repo/pull/123">
+            </div>
+            <button type="submit" class="run-button" id="review-btn">Review it <span aria-hidden="true">↗</span></button>
           </div>
           <div class="paste-box" id="paste-box" hidden>
             <label class="visually-hidden" for="diff-text">Diff to review</label>
             <textarea id="diff-text" rows="10" spellcheck="false" autocapitalize="off"
                       placeholder="Paste the output of git diff here"></textarea>
             <div class="paste-actions">
-              <button type="submit" class="btn btn-primary btn-hero" id="review-diff-btn"><span>Review diff</span><span class="btn-arrow" aria-hidden="true">→</span></button>
+              <button type="submit" class="run-button" id="review-diff-btn">Review diff <span aria-hidden="true">↗</span></button>
             </div>
           </div>
-          <p class="form-links">
-            <button type="button" class="link" id="try-sample">Try a sample</button>
-            <span class="dot" aria-hidden="true">·</span>
-            <button type="button" class="link" id="toggle-paste">Paste a diff instead</button>
-            <span class="dot" aria-hidden="true">·</span>
-            <span>Public GitHub pull requests only</span>
-          </p>
           <div class="form-error" id="form-error" role="alert" hidden></div>
         </form>
+        <div class="hero-note">
+          <button type="button" class="note-button" id="try-sample">Try the example PR <span aria-hidden="true">→</span></button>
+          <button type="button" class="link" id="toggle-paste">Paste a diff instead</button>
+          <button type="button" class="link" id="reopen-review" hidden>Open the last review</button>
+          <span class="note-small">public links only · nothing saved</span>
+        </div>
       </div>
 
-      <div class="hero-visual">
-        <div class="visual-frame">
-          <div class="hero-art" id="hero-art" role="img" aria-label="A giant clipboard with five ticked rows, on a little island at the end of a road"></div>
-          <div class="visual-overlay"></div>
-          <div class="floating-note note-top"><span class="note-icon green">✓</span><span>5 areas checked</span></div>
-          <div class="floating-note note-bottom"><span class="note-icon blue">L42</span><span>every item points at a line</span></div>
-          <div class="scan-line"></div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="annotation annotation-a"><strong>01</strong><span>read the diff</span></div>
+        <div class="annotation annotation-b"><strong>02</strong><span>find the gap</span></div>
+        <div class="annotation annotation-c"><strong>03</strong><span>make it actionable</span></div>
+        <div class="editor-card">
+          <div class="editor-top"><span class="traffic"><i></i><i></i><i></i></span><span class="editor-title">bookshop-demo / Add order search #1</span><span class="editor-more">···</span></div>
+          <div class="editor-main">
+            <div class="editor-side">
+              <small>FILES</small>
+              <span class="active">↳ search.ts <em>+17</em></span>
+              <span>↳ orders.ts <em>+12</em></span>
+              <span>↳ app.ts <em>+6</em></span>
+              <span>↳ users.ts <em>+1</em></span>
+              <div class="side-bottom">4 files changed<br><b>+36</b> <i>−11</i></div>
+            </div>
+            <div class="editor-code">
+              <div class="code-head"><span>src/search.ts</span><small>sample PR</small></div>
+              <div class="code">
+                <p class="insert"><em>10</em>+ export async function searchOrders(q) {</p>
+                <p class="insert"><em>11</em>+ &nbsp; if (!q || q.length &gt; MAX_QUERY_LENGTH) {</p>
+                <p class="insert"><em>12</em>+ &nbsp; &nbsp; return [];</p>
+                <p class="insert"><em>13</em>+ &nbsp; }</p>
+                <p class="insert hit"><em>15</em>+ &nbsp; const rows = await db.query(`SELECT * … LIKE '%${q}%'`);</p>
+                <p class="insert"><em>16</em>+ &nbsp; return rows as Order[];</p>
+              </div>
+              <div class="review-bubble"><span>!</span><div><b>SQL built by pasting a value into the string</b><small>src/search.ts:15 · could this use a query parameter?</small></div><em>SECURITY</em></div>
+            </div>
+          </div>
+          <div class="editor-bottom"><span><i></i> senior review checklist</span><span>security <b>·</b> tests <b>·</b> breaking <b>·</b> docs <b>·</b> perf</span></div>
         </div>
-        <p class="visual-caption"><span>01</span> The review starts where the diff gets interesting.</p>
+        <div class="hero-stamp">✓<br><span>EVERY<br>ITEM<br>POINTS AT<br>A LINE</span></div>
       </div>
     </section>
 
-    <section class="proof-strip shell" id="start-view" aria-label="How it works">
-      <div class="proof-intro"><span class="section-number">[ 01 ]</span><h2>Less noise.<br><span>More signal.</span></h2></div>
-      <ol class="how">
-        <li><span class="how-num">01</span><strong>Paste a link</strong><p>Any public GitHub pull request, or a diff from <code>git diff</code>.</p></li>
-        <li><span class="how-num">02</span><strong>Get the checklist</strong><p>Security, tests, breaking changes, docs and performance, each pointing at the exact line.</p></li>
-        <li><span class="how-num">03</span><strong>Copy it to the PR</strong><p>Tick items as you go, then paste the checklist or a ready-made comment.</p></li>
+    <section class="marquee" aria-hidden="true"><div><span>LOOK CLOSER</span><b>✳</b><span>ASK BETTER QUESTIONS</span><b>✳</b><span>SHIP WITH CONTEXT</span><b>✳</b><span>LOOK CLOSER</span><b>✳</b><span>ASK BETTER QUESTIONS</span><b>✳</b><span>SHIP WITH CONTEXT</span><b>✳</b></div></section>
+
+    <section class="method shell" id="method" aria-label="How it works">
+      <div class="section-copy">
+        <p class="eyebrow"><span>02</span><b></b><span>How it works</span></p>
+        <h2>Less “LGTM.”<br><i>More “why?”</i></h2>
+        <p>Most review tools tell you if something is green. This one helps you notice what green forgot to explain.</p>
+      </div>
+      <ol class="method-list">
+        <li><span class="list-number">01</span><div><h3>Paste a link</h3><p>Any public GitHub pull request, or a diff from <code>git diff</code>.</p></div><strong aria-hidden="true">↗</strong></li>
+        <li><span class="list-number">02</span><div><h3>Get the checklist</h3><p>Security, tests, breaking changes, docs and performance, each pointing at the exact line. A second check hides anything the code doesn't back up.</p></div><strong aria-hidden="true">↗</strong></li>
+        <li><span class="list-number">03</span><div><h3>Copy it to the PR</h3><p>Tick items as you go, then paste the checklist or a ready-made comment.</p></div><strong aria-hidden="true">↗</strong></li>
       </ol>
     </section>
 
-    <section class="review-section shell" id="review-output" aria-label="Review">
-      <div class="review-header">
-        <div><span class="section-number">[ 02 ]</span><h2>What your reviewer<br><span>will notice.</span></h2></div>
-        <span class="review-state" id="review-state" aria-live="polite">Awaiting a PR</span>
+    <section class="closing shell">
+      <div class="closing-block"><span class="closing-number">03</span><h2>Ship the thing.<br><i>Keep the context.</i></h2></div>
+      <div class="closing-block">
+        <p class="privacy" id="privacy-note">Nothing is saved. When the AI reviewer is on, the changed code is sent to NVIDIA's AI service to be reviewed, so don't paste code you aren't allowed to share.</p>
+        <a class="closing-button" href="#main" id="start-cta">Start a review <span aria-hidden="true">↗</span></a>
       </div>
-      <div class="review-panel" id="review-panel">
-        <div class="empty-review" id="empty-view">
-          <span class="empty-orbit" aria-hidden="true">✳</span>
-          <p>Your checklist will appear here.</p>
-          <small>Paste a pull request above, or try the sample.</small>
-        </div>
+    </section>
+  </main>
+
+  <footer class="footer shell">
+    <span><b>PR Review Checklist</b> / BUILD WITH AI: BASICS</span>
+    <span>nothing saved · runs on your computer</span>
+    <a href="https://github.com/manangoesagain/pr-review-checklist" target="_blank" rel="noreferrer">View source ↗</a>
+  </footer>
+
+  <div class="review-modal" id="review-modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+      <div class="modal-header">
+        <div><span class="modal-kicker" id="review-state">REVIEW / RUNNING</span><h2 id="modal-title">Review output</h2></div>
+        <button class="modal-close" id="modal-close" type="button" aria-label="Close the review">×</button>
+      </div>
+      <div class="modal-panel">
         <div id="loading-view" class="loading-view" hidden aria-live="polite">
           <span class="loader" aria-hidden="true"></span>
           <ol class="steps" id="steps"></ol>
@@ -96,23 +137,8 @@
         </div>
         <div id="results-view" class="results-view" hidden aria-live="polite"></div>
       </div>
-      <p class="privacy" id="privacy-note">Nothing is saved. When the AI reviewer is on, the changed code is sent to NVIDIA's AI service to be reviewed, so don't paste code you aren't allowed to share.</p>
-    </section>
-
-    <section class="footer-cta shell">
-      <div><span class="section-number">[ 03 ]</span><h2>Ship with<br><span>confidence.</span></h2></div>
-      <div class="footer-cta-copy">
-        <p>Built for beginners and solo developers who want the last 10% of quality: the part no linter catches.</p>
-        <a href="#main" class="outline-button" id="start-cta">Start a review <span aria-hidden="true">→</span></a>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer shell">
-    <span>PR Review Checklist</span>
-    <span>Built for Build With AI: Basics</span>
-    <a href="https://github.com/manangoesagain/pr-review-checklist" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
-  </footer>
+    </div>
+  </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>

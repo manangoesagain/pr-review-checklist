@@ -55,25 +55,51 @@ function safeGitHubLink(url) {
 
 /* ---------- Views ---------- */
 
-// The hero and the steps stay put; only the review panel changes.
+// The page stays put; a review runs and shows in a pop-up over it.
 function showView(name) {
-  $('#empty-view').hidden = name !== 'start';
   $('#loading-view').hidden = name !== 'loading';
   $('#results-view').hidden = name !== 'results';
+  $('#reopen-review').hidden = !state.review || name !== 'start';
+  if (name === 'start') return closeModal();
+  $('#modal-title').textContent = name === 'loading' ? 'Reviewing the pull request' : 'Review output';
+  updateTally();
+  openModal();
+}
+
+// The pop-up's small label: what's running, or how many items are ticked off.
+function updateTally() {
   const label = $('#review-state');
-  label.dataset.state = name;
-  if (name === 'start') label.textContent = 'Awaiting a PR';
-  else if (name === 'loading') label.textContent = 'Reviewing the diff';
-  else label.textContent = resultsLabel(state.review);
+  if (!$('#loading-view').hidden) { label.textContent = 'REVIEW / RUNNING'; return; }
+  const count = state.review?.areas.reduce((sum, area) => sum + area.items.length, 0) ?? 0;
+  label.textContent = count === 0 ? 'REVIEW / ALL CLEAR' : `REVIEW / ${state.done.size} OF ${count} TICKED OFF`;
 }
 
-function resultsLabel(review) {
-  const count = review?.areas.reduce((sum, area) => sum + area.items.length, 0) ?? 0;
-  return count === 0 ? 'All clear' : plural(count, 'item');
+let lastFocus = null;
+
+function openModal() {
+  const modal = $('#review-modal');
+  if (!modal.hidden) return;
+  lastFocus = document.activeElement;
+  modal.hidden = false;
+  document.body.classList.add('modal-open');
+  requestAnimationFrame(() => modal.classList.add('is-open'));
+  $('.modal-card').scrollTop = 0;
+  $('#modal-close').focus();
 }
 
-function scrollToReview() {
-  $('#review-output').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+function closeModal() {
+  const modal = $('#review-modal');
+  if (modal.hidden) return;
+  modal.classList.remove('is-open');
+  modal.hidden = true;
+  document.body.classList.remove('modal-open');
+  lastFocus?.focus?.();
+}
+
+// Closing while a review runs cancels it.
+function dismissModal() {
+  if (state.controller) state.controller.abort();
+  showView('start');
 }
 
 function setBusy(busy) {
@@ -181,26 +207,24 @@ async function startReview(body) {
   state.controller?.abort();
   const controller = new AbortController();
   state.controller = controller;
-  const returnTo = state.review ? 'results' : 'start';
 
   setBusy(true);
   renderSteps(plannedSteps(body));
   showView('loading');
-  scrollToReview();
   startTimer();
   try {
     const result = await streamReview(body, controller.signal, markStep);
     if (result.error) {
-      showView(returnTo);
+      showView('start');
       showError(result.error);
     } else {
       state.review = result.review;
       renderResults(result.review);
       showView('results');
-      scrollToReview();
+      $('.modal-card').scrollTop = 0;
     }
   } catch (error) {
-    showView(returnTo);
+    showView('start');
     if (error.name !== 'AbortError') {
       showError({ code: 'network', message: 'Couldn\'t reach the app\'s server. Is it still running? Start it again with npm start.' });
     }
@@ -250,6 +274,7 @@ function itemNode(item, open) {
     node.classList.toggle('is-done', check.checked);
     if (check.checked) state.done.add(item.id);
     else state.done.delete(item.id);
+    updateTally();
   });
 
   const body = el('div', { class: 'item-body', id: bodyId, hidden: !open },
@@ -548,8 +573,24 @@ $('#try-sample').addEventListener('click', () => {
   if (!state.controller) startReview({ sample: true });
 });
 $('#cancel-btn').addEventListener('click', () => state.controller?.abort());
-$('#diff-text').addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) submit(event);
+$('#modal-close').addEventListener('click', dismissModal);
+$('.modal-backdrop').addEventListener('click', dismissModal);
+$('#reopen-review').addEventListener('click', () => { if (state.review) showView('results'); });
+document.addEventListener('keydown', (event) => {
+  const modalOpen = !$('#review-modal').hidden;
+  if (event.key === 'Escape' && modalOpen) return dismissModal();
+  // Ctrl+Enter (Cmd+Enter on a Mac) runs a review from anywhere on the page.
+  if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !modalOpen) submit(event);
+  // Keep Tab inside the pop-up while it's open.
+  if (event.key === 'Tab' && modalOpen) {
+    const card = $('.modal-card');
+    const focusable = [...card.querySelectorAll('button, a[href], input, summary, [tabindex]:not([tabindex="-1"])')].filter((node) => node.offsetParent !== null && !node.disabled);
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !card.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
 });
 
 showView('start');
