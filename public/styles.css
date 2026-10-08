@@ -129,7 +129,8 @@ a:hover { text-decoration: underline; }
 .nav nav a.selected { color: var(--ink); }
 .nav nav a.selected::after { content: ""; position: absolute; bottom: 0; left: 0; width: 14px; height: 2px; background: var(--brand); }
 .nav-meta { display: flex; align-items: center; gap: 25px; }
-.nav-github { color: var(--ink); font-weight: 700; }
+.nav-github, .nav-tour { color: var(--ink); font-weight: 700; }
+.nav-tour { display: none; }
 
 .pill { display: inline-flex; align-items: center; gap: 7px; color: #6a6e69; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
 .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
@@ -251,8 +252,10 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 .editor-bottom b { color: #4d5663; }
 .annotation { position: absolute; z-index: 3; display: flex; align-items: center; gap: 8px; color: #6c706a; font-size: 10px; transform: rotate(3deg); }
 .annotation strong { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid #b2afa6; border-radius: 50%; color: var(--brand); background: var(--paper); font-size: 10px; }
-.annotation-a { left: -25px; top: 76px; }
-.annotation-b { right: -22px; top: 46%; }
+/* The notes sit just outside the editor, never on top of its text. */
+.hero-art { padding-top: 44px; }
+.annotation-a { left: 18px; top: 4px; }
+.annotation-b { right: 120px; top: 0; }
 .annotation-c { left: 7%; bottom: -1px; }
 .annotation::after { content: ""; width: 30px; height: 1px; background: #bbb8af; }
 .annotation-b::after { order: -1; }
@@ -274,13 +277,12 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 .section-copy h2, .closing h2 { font-size: clamp(49px, 5.5vw, 76px); margin-top: 27px; }
 .section-copy > p { max-width: 300px; color: #74766f; font-size: 14px; line-height: 1.7; }
 .method-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-.method-list li { display: grid; grid-template-columns: 46px 1fr 25px; gap: 18px; align-items: start; padding: 25px 0; border-bottom: 1px solid var(--line); transition: padding 0.2s, background 0.2s; }
+.method-list li { display: grid; grid-template-columns: 46px 1fr; gap: 18px; align-items: start; padding: 25px 0; border-bottom: 1px solid var(--line); transition: padding 0.2s, background 0.2s; }
 .method-list li:hover { padding-left: 8px; padding-right: 8px; background: rgba(47, 95, 208, 0.05); }
 .list-number { color: var(--brand); font-size: 11px; font-weight: 800; }
 .method-list h3 { margin: 0 0 8px; color: var(--ink); font-size: 18px; letter-spacing: -0.04em; }
 .method-list p { max-width: 440px; margin: 0; color: #777a74; font-size: 13px; line-height: 1.55; }
 .method-list code { color: var(--ink); }
-.method-list li > strong { color: #9c9c95; font-size: 18px; font-weight: 400; }
 
 /* Closing and footer */
 .closing { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 100px; align-items: end; padding: 106px 0 126px; border-top: 1px solid var(--line); }
@@ -402,7 +404,6 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 .sev-good-to-know .sev { color: var(--know); background: var(--know-bg); border-color: color-mix(in srgb, var(--know) 40%, transparent); }
 
 .item-body { padding: 0 14px 14px 40px; display: grid; gap: 10px; }
-.item-detail { margin: 0; color: var(--muted); font-size: 14px; }
 .item-text { margin: 0; font-size: 14px; }
 .item-text strong { font-weight: 600; }
 .item-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -479,6 +480,10 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 }
 .copy-dialog form { display: flex; justify-content: flex-end; margin-top: 10px; }
 
+@media (max-width: 1340px) {
+  .hero-stamp { right: -14px; bottom: -26px; }
+}
+
 @media (max-width: 1000px) {
   .hero { grid-template-columns: 1fr; gap: 70px; }
   .hero-copy { max-width: 700px; }
@@ -491,6 +496,8 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
   .shell, .wrap { width: calc(100% - 32px); }
   .nav { height: 64px; }
   .nav nav, .nav-github { display: none; }
+  .nav-meta { gap: 16px; }
+  .nav-tour { display: inline; }
   .hero { padding: 60px 0 80px; gap: 56px; }
   .promise { font-size: 60px; }
   .input-row { flex-direction: column; }
@@ -502,9 +509,10 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
   .editor-main { grid-template-columns: 1fr; }
   .editor-side, .annotation { display: none; }
   .editor-code { min-height: 300px; }
-  .hero-stamp { right: -8px; bottom: -13px; }
+  .hero-stamp { display: none; }
+  .editor-card { box-shadow: 0 20px 50px rgba(35, 32, 24, 0.18); }
   .method { padding: 80px 0 90px; }
-  .method-list li { grid-template-columns: 31px 1fr 20px; }
+  .method-list li { grid-template-columns: 31px 1fr; }
   .closing { grid-template-columns: 1fr; gap: 30px; padding: 80px 0 90px; }
   .footer { align-items: flex-start; flex-direction: column; padding: 20px 0; }
   .review-modal { padding: 0; place-items: stretch; }
@@ -519,6 +527,17 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
   .item-ref { max-width: 100%; order: 3; flex-basis: 100%; }
   .item-body { padding-left: 14px; }
   .action-bar-inner .btn { flex: 1; padding: 0 10px; }
+}
+
+/* Phones keep :hover after a tap, so taps shouldn't leave buttons lifted or recoloured. */
+@media (hover: none) {
+  .run-button:hover:not(:disabled) { background: var(--ink); transform: none; }
+  .closing-button:hover { background: var(--brand); transform: none; }
+  .note-button:hover:not(:disabled) { color: var(--ink); }
+  .method-list li:hover { padding-left: 0; padding-right: 0; background: none; }
+  .btn:hover { background: var(--surface); }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+  .chip:hover { background: transparent; }
 }
 
 @media (prefers-reduced-motion: reduce) {

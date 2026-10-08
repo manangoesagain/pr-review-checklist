@@ -6,9 +6,9 @@
   <title>PR Review Checklist</title>
   <meta name="description" content="Paste a GitHub pull request link and get the checklist a careful senior reviewer would run, with every item proven against the real code.">
   <meta name="color-scheme" content="light">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233b82f6'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
-  <script type="module" src="app.js"></script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5fd0'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
 </head>
 <body>
   <header class="nav shell">
@@ -20,6 +20,7 @@
     </nav>
     <div class="nav-meta">
       <span id="mode-pill" class="pill" hidden></span>
+      <a class="nav-tour" href="/">Tour ↗</a>
       <a class="nav-github" href="https://github.com/manangoesagain/pr-review-checklist" target="_blank" rel="noreferrer">GitHub ↗</a>
     </div>
   </header>
@@ -36,7 +37,7 @@
             <div class="url-field">
               <label class="visually-hidden" for="pr-url">Pull request link</label>
               <input id="pr-url" name="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"
-                     placeholder="https://github.com/owner/repo/pull/123">
+                     placeholder="github.com/owner/repo/pull/123">
             </div>
             <button type="submit" class="run-button" id="review-btn">Review it <span aria-hidden="true">↗</span></button>
           </div>
@@ -101,9 +102,9 @@
         <p>Most review tools tell you if something is green. This one helps you notice what green forgot to explain.</p>
       </div>
       <ol class="method-list">
-        <li><span class="list-number">01</span><div><h3>Paste a link</h3><p>Any public GitHub pull request, or a diff from <code>git diff</code>.</p></div><strong aria-hidden="true">↗</strong></li>
-        <li><span class="list-number">02</span><div><h3>Get the checklist</h3><p>Security, tests, breaking changes, docs and performance, each pointing at the exact line. A second check hides anything the code doesn't back up.</p></div><strong aria-hidden="true">↗</strong></li>
-        <li><span class="list-number">03</span><div><h3>Copy it to the PR</h3><p>Tick items as you go, then paste the checklist or a ready-made comment.</p></div><strong aria-hidden="true">↗</strong></li>
+        <li><span class="list-number">01</span><div><h3>Paste a link</h3><p>Any public GitHub pull request, or a diff from <code>git diff</code>.</p></div></li>
+        <li><span class="list-number">02</span><div><h3>Get the checklist</h3><p>Security, tests, breaking changes, docs and performance, each pointing at the exact line. A second check hides anything the code doesn't back up.</p></div></li>
+        <li><span class="list-number">03</span><div><h3>Copy it to the PR</h3><p>Tick items as you go, then paste the checklist or a ready-made comment.</p></div></li>
       </ol>
     </section>
 
@@ -111,7 +112,7 @@
       <div class="closing-block"><span class="closing-number">03</span><h2>Ship the thing.<br><i>Keep the context.</i></h2></div>
       <div class="closing-block">
         <p class="privacy" id="privacy-note">Nothing is saved. When the AI reviewer is on, the changed code is sent to NVIDIA's AI service to be reviewed, so don't paste code you aren't allowed to share.</p>
-        <a class="closing-button" href="#main" id="start-cta">Start a review <span aria-hidden="true">↗</span></a>
+        <a class="closing-button" href="#main" id="start-cta">Start a review <span aria-hidden="true">↑</span></a>
       </div>
     </section>
   </main>

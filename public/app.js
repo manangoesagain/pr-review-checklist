@@ -82,7 +82,7 @@ function openModal() {
   lastFocus = document.activeElement;
   modal.hidden = false;
   document.body.classList.add('modal-open');
-  requestAnimationFrame(() => modal.classList.add('is-open'));
+  requestAnimationFrame(() => { if (!modal.hidden) modal.classList.add('is-open'); });
   $('.modal-card').scrollTop = 0;
   $('#modal-close').focus();
 }
@@ -530,8 +530,13 @@ function startOver() {
   $('#results-view').replaceChildren();
   hideError();
   showView('start');
+  focusInput();
+}
+
+// Scrolls to the top and puts the cursor in the link box (or the diff box).
+function focusInput() {
   window.scrollTo({ top: 0 });
-  (state.pasteMode ? $('#diff-text') : $('#pr-url')).focus();
+  (state.pasteMode ? $('#diff-text') : $('#pr-url')).focus({ preventScroll: true });
 }
 
 /* ---------- Wiring ---------- */
@@ -575,6 +580,11 @@ $('#try-sample').addEventListener('click', () => {
 $('#cancel-btn').addEventListener('click', () => state.controller?.abort());
 $('#modal-close').addEventListener('click', dismissModal);
 $('.modal-backdrop').addEventListener('click', dismissModal);
+// "Start a review" at the bottom scrolls up and puts the cursor in the box.
+$('#start-cta').addEventListener('click', (event) => {
+  event.preventDefault();
+  focusInput();
+});
 $('#reopen-review').addEventListener('click', () => { if (state.review) showView('results'); });
 document.addEventListener('keydown', (event) => {
   const modalOpen = !$('#review-modal').hidden;

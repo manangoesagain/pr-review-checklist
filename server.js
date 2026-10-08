@@ -71,6 +71,10 @@ export function createApp({
     }
   });
 
+  // Unknown addresses: JSON for the API, a friendly page for everything else.
+  app.use('/api', (_req, res) => res.status(404).json({ error: { code: 'not-found', message: 'There\'s nothing at that address.' } }));
+  app.use((_req, res) => res.status(404).sendFile(path.join(projectFolder, 'public', '404.html')));
+
   // Oversized or broken requests get a plain JSON message instead of an HTML error page.
   app.use((err, _req, res, _next) => {
     const status = err.status ?? err.statusCode ?? 500;

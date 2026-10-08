@@ -30,6 +30,21 @@ test('health says basic mode when there is no AI key', async () => {
   assert.deepEqual(await res.json(), { ai: false, model: null, problem: null });
 });
 
+test('unknown addresses get the friendly page, unknown API calls get JSON', async () => {
+  const page = await fetch(`${base}/nope`);
+  assert.equal(page.status, 404);
+  assert.match(await page.text(), /Nothing to<br><i>review here/);
+  const api = await fetch(`${base}/api/nope`);
+  assert.equal(api.status, 404);
+  assert.equal((await api.json()).error.code, 'not-found');
+});
+
+test('the app page loads its files from the site root, so /app/ works too', async () => {
+  const html = await (await fetch(`${base}/app/`)).text();
+  assert.match(html, /href="\/styles\.css"/);
+  assert.match(html, /src="\/app\.js"/);
+});
+
 test('the sample streams its steps, then the review', async () => {
   const { status, type, lines } = await review({ sample: true });
   assert.equal(status, 200);

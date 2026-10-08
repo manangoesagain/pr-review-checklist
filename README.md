@@ -13,7 +13,7 @@ npm install
 npm start
 ```
 
-Then open http://localhost:3000. The landing page flies you through what the checklist looks for as you scroll; **Open the app** (or http://localhost:3000/app) goes straight to the tool. There, paste the link of any public GitHub pull request, click **Try a sample**, or paste a diff from `git diff`.
+Then open http://localhost:3000. The landing page flies you through what the checklist looks for as you scroll; **Open the app** (or http://localhost:3000/app) goes straight to the tool. There, paste the link of any public GitHub pull request, click **Try the example PR**, or paste a diff from `git diff`.
 
 GitHub lets you read about 20 PRs an hour without signing in (each review makes about three requests, and a repeat within 10 minutes is free). For more, add a `GITHUB_TOKEN` to `.env`.
 
@@ -29,7 +29,7 @@ npm test
 
 ## The demo repo
 
-**Try a sample** reviews a small bookshop API whose pull request has five planted problems: SQL built from search text, no tests, a changed response shape, a new endpoint missing from the README, and a query inside a loop. A second, clean pull request has none. To put the demo on your own GitHub so its links open:
+**Try the example PR** (in the app) or **Try the sample** (on the tour) reviews a small bookshop API whose pull request has five planted problems: SQL built from search text, no tests, a changed response shape, a new endpoint missing from the README, and a query inside a loop. A second, clean pull request has none. To put the demo on your own GitHub so its links open:
 
 1. Create an empty public repo called `bookshop-demo` (no README, no license).
 2. Build the demo repo and push its three branches:
