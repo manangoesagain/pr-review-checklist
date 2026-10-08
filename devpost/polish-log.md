@@ -76,7 +76,10 @@ for items 2 and 3).
    1134 and 1440 px: nothing covers code or labels, nothing is cut off.
 11. **Stamp.** At 1340 px and under it moves in and down (`right: -14px; bottom: -26px`), so
    its right edge stays inside the window (782 px at 800 wide, 1116 at 1134); hidden on
-   phones, where there is no room for it.
+   phones, where there is no room for it. Re-check on the PC found it still covered
+   "· docs · perf" in the preview's footer at 800 and 1134 px, so the footer now has 84 px of
+   right padding (16 px on phones, where the stamp is hidden). Checked: the whole footer line
+   reads at 800, 1000, 1134, 1280, 1440 and 1920 px.
 12. **Shadow slab on phones.** On phones the editor keeps only its soft shadow.
 13. **Cut-off example text.** The link box's example now reads `github.com/owner/repo/pull/123`,
    which fits at 1134 px. Full `https://` links still work.

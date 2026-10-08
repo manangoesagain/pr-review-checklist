@@ -246,7 +246,8 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
 .review-bubble b { display: block; font-size: 11px; }
 .review-bubble small { display: block; margin-top: 3px; color: #9aa6bd; font-size: 9px; }
 .review-bubble > em { color: var(--brand); font-size: 8px; font-style: normal; letter-spacing: 0.12em; }
-.editor-bottom { display: flex; justify-content: space-between; gap: 10px; padding: 11px 16px; border-top: 1px solid #333943; color: #69727f; font-size: 9px; }
+/* Right padding keeps the footer text clear of the round stamp. */
+.editor-bottom { display: flex; justify-content: space-between; gap: 10px; padding: 11px 84px 11px 16px; border-top: 1px solid #333943; color: #69727f; font-size: 9px; }
 .editor-bottom span:first-child { color: #84dfa6; }
 .editor-bottom i { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #84dfa6; }
 .editor-bottom b { color: #4d5663; }
@@ -510,6 +511,7 @@ textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px 
   .editor-side, .annotation { display: none; }
   .editor-code { min-height: 300px; }
   .hero-stamp { display: none; }
+  .editor-bottom { padding-right: 16px; }
   .editor-card { box-shadow: 0 20px 50px rgba(35, 32, 24, 0.18); }
   .method { padding: 80px 0 90px; }
   .method-list li { grid-template-columns: 31px 1fr; }
