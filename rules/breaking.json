@@ -2,6 +2,7 @@
   "area": "breaking",
   "questions": [
     "Did a function, class, route, response, config key or database column that other code or other apps may rely on change its name, inputs or shape? Callers are not in the diff, so ask this as a question for the author.",
+    "Did a returned object or JSON response change shape, for example a field renamed, moved inside another object or removed? Apps that read the old field will get nothing.",
     "Was something renamed or removed without keeping the old name working for a while?"
   ],
   "hints": [

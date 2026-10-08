@@ -28,7 +28,7 @@ test('cleans keys pasted with quotes, spaces, "Bearer" or invisible characters',
 test('settings have safe defaults', () => {
   const settings = readSettings({});
   assert.equal(settings.nvidiaKey, '');
-  assert.equal(settings.model, 'openai/gpt-oss-120b');
+  assert.equal(settings.model, 'nvidia/nemotron-3-super-120b-a12b');
   assert.equal(settings.claimCheck, true);
   assert.equal(settings.port, 3000);
   assert.equal(readSettings({ CLAIM_CHECK: 'off', PORT: 'abc' }).claimCheck, false);

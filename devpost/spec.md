@@ -45,7 +45,7 @@ Lessons carried over from Trial Trap's working setup (as ideas, not copied code)
 ## Where It Runs and How Someone Tries It
 
 - Runs locally: a Node server on `http://localhost:3000` (port changeable with `PORT` in `.env`), opened in any browser.
-- Needs Node 22+. Optional: `NVIDIA_API_KEY` (AI review; without it, basic mode), `AI_MODEL` (default `openai/gpt-oss-120b`; if it doesn't answer at startup, the app switches to the first working model in `MODEL_CHOICES` in `lib/ai.js`), `GITHUB_TOKEN` (raises GitHub's limit from 60 to 5,000 requests an hour).
+- Needs Node 22+. Optional: `NVIDIA_API_KEY` (AI review; without it, basic mode), `AI_MODEL` (default `nvidia/nemotron-3-super-120b-a12b`; if it doesn't answer at startup, the app switches to the first working model in `MODEL_CHOICES` in `lib/ai.js`), `GITHUB_TOKEN` (raises GitHub's limit from 60 to 5,000 requests an hour).
 - Start: `npm install`, copy `.env.example` to `.env` and paste the key, then `npm start`, then open `http://localhost:3000`.
 - Demo recording: start the server, open the page, paste the demo PR link from the bookshop-demo repo, show the open item and the hidden list, copy Markdown into a GitHub comment, then review the clean PR to show "No problems found".
 - Submission needs a demo video under 3 minutes and a public GitHub repo with these devpost docs and a LICENSE. No deployment planned (optional per the rules).

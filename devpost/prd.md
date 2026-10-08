@@ -151,4 +151,4 @@ Source: `scope.md > The Unique Kernel`, `scope.md > The POC Boundary`.
 ## Open Questions
 
 - The final name — can wait until the ship step.
-- Which NVIDIA model reviews best — answered by the evaluation during the build. `meta/llama-3.3-70b-instruct` was the starting point until NVIDIA retired it in August 2026; the app now starts with `openai/gpt-oss-120b` and switches to a working model at startup.
+- Which NVIDIA model reviews best — answered by the evaluation during the build. `meta/llama-3.3-70b-instruct` was the starting point until NVIDIA retired it in August 2026; `openai/gpt-oss-120b` followed on 2026-10-07 (HTTP 410). The app now starts with `nvidia/nemotron-3-super-120b-a12b` and switches to a working model at startup.
