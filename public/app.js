@@ -55,12 +55,25 @@ function safeGitHubLink(url) {
 
 /* ---------- Views ---------- */
 
+// The hero and the steps stay put; only the review panel changes.
 function showView(name) {
-  $('#start-view').hidden = name !== 'start';
+  $('#empty-view').hidden = name !== 'start';
   $('#loading-view').hidden = name !== 'loading';
   $('#results-view').hidden = name !== 'results';
-  $('#promise').hidden = name === 'results';
-  $('#hero-art').hidden = name !== 'start';
+  const label = $('#review-state');
+  label.dataset.state = name;
+  if (name === 'start') label.textContent = 'Awaiting a PR';
+  else if (name === 'loading') label.textContent = 'Reviewing the diff';
+  else label.textContent = resultsLabel(state.review);
+}
+
+function resultsLabel(review) {
+  const count = review?.areas.reduce((sum, area) => sum + area.items.length, 0) ?? 0;
+  return count === 0 ? 'All clear' : plural(count, 'item');
+}
+
+function scrollToReview() {
+  $('#review-output').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 }
 
 function setBusy(busy) {
@@ -77,6 +90,7 @@ function showError(error) {
     box.append(el('button', { type: 'button', class: 'link', text: 'Paste the diff instead', onclick: () => setPasteMode(true) }));
   }
   box.hidden = false;
+  box.scrollIntoView({ block: 'nearest' });
 }
 
 function hideError() {
@@ -172,6 +186,7 @@ async function startReview(body) {
   setBusy(true);
   renderSteps(plannedSteps(body));
   showView('loading');
+  scrollToReview();
   startTimer();
   try {
     const result = await streamReview(body, controller.signal, markStep);
@@ -182,7 +197,7 @@ async function startReview(body) {
       state.review = result.review;
       renderResults(result.review);
       showView('results');
-      window.scrollTo({ top: 0 });
+      scrollToReview();
     }
   } catch (error) {
     showView(returnTo);
