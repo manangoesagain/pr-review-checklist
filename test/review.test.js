@@ -60,8 +60,8 @@ test('if the AI fails, the basic checklist comes back with the reason', async ()
     const review = await runReview({ sample: 'demo' }, { ai: fakeAi(replies) });
     assert.equal(review.mode, 'basic');
     assert.ok(review.aiError, String(failure));
-    assert.equal(flat(review).length, 4, 'facts and hints still there');
-    assert.equal(review.areas.find((a) => a.id === 'breaking').status, 'unchecked');
+    assert.equal(flat(review).length, 5, 'facts and hints still there');
+    assert.equal(review.areas.find((a) => a.id === 'breaking').status, 'issues');
   }
 });
 

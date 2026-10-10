@@ -56,7 +56,7 @@ test('the sample streams its steps, then the review', async () => {
   assert.equal(result.pr.title, 'Add order search');
   assert.equal(result.stats.files, 4);
   assert.deepEqual(result.areas.map((a) => [a.id, a.status]), [
-    ['security', 'issues'], ['tests', 'issues'], ['breaking', 'unchecked'], ['docs', 'issues'], ['performance', 'issues'],
+    ['security', 'issues'], ['tests', 'issues'], ['breaking', 'issues'], ['docs', 'issues'], ['performance', 'issues'],
   ]);
   assert.equal(result.areas[1].items[0].id, 'tests-1');
   const sql = result.areas[0].items[0];

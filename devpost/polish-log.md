@@ -30,6 +30,7 @@ text from a PR or the AI never becomes HTML, and the Markdown export neutralises
 | 14 | Both | Several greys were below the 4.5:1 contrast minimum (the small note under the link box was 2.3:1). | fixed |
 | 15 | Pop-up | Screen readers would read the seconds counter out every second, but never the step names. | fixed |
 | 16 | Checklist | On the PC's real AI run, the loop with a query inside it was listed twice under Performance: the AI cited the loop line, the pattern flagged the query line one below, and they were only merged on the exact same line. | fixed |
+| 17 | Breaking changes | A returned object that changed shape (the example PR's user response) was only an AI question, so real runs caught it about 2 times in 3. | fixed |
 
 ### Fixes
 
@@ -61,6 +62,10 @@ text from a PR or the AI never becomes HTML, and the Markdown export neutralises
     line announces each step.
 16. `lib/verify.js`: a pattern hint now merges with the closest AI item in the same area and file
     up to 3 lines away (`NEAR_LINES`), not only on the exact line. New test in `test/verify.test.js`.
+17. `rules/breaking.json` + `lib/hints.js`: a new pattern check, `return-shape-changed`, compares the
+    top-level fields of a removed and an added one-line `return { … }` in the same hunk and flags
+    the new line, naming the function and the fields that went away. Basic mode now finds all five
+    planted problems; when the AI also finds it, the item shows as "Pattern and AI agree".
 
 Checked together: `npm test` (137 pass, 8 new tests for items 1, 2, 4, 5, 10 and 12), the
 reviewers' Playwright scripts re-run (focus, Tab, Retry, overlap, long paths, contrast, no

@@ -24,10 +24,11 @@ test('every rule file loads and every pattern compiles', () => {
   }
 });
 
-test('demo PR: SQL, the loop and the undocumented endpoint, at the right lines', () => {
+test('demo PR: SQL, the changed response, the undocumented endpoint and the loop, at the right lines', () => {
   const items = hintsFor(diffFromGitHub(loadSample('demo')));
   assert.deepEqual(keys(items), [
     'sql-built-from-values src/search.ts:R15',
+    'return-shape-changed src/users.ts:R16',
     'route-not-in-readme src/app.ts:R23',
     'call-in-loop src/orders.ts:R24',
   ]);
@@ -163,4 +164,16 @@ test('very long lines are skipped, so a crafted line can\'t slow the server down
   assert.ok(performance.now() - started < 1000, 'finished quickly');
   assert.deepEqual(hints.filter((h) => h.area === 'security' || h.area === 'performance'), []);
   assert.equal(keys(hintsForText(added('src/app.js', 'const q = `SELECT * FROM t WHERE id = ${id}`;'))).length, 1);
+});
+
+test('a returned object whose fields changed is flagged on the new return line', () => {
+  const change = (before, after) => hintsForText(`--- a/src/u.js\n+++ b/src/u.js\n@@ -1,3 +1,3 @@\n export function toUser(u) {\n-  return ${before};\n+  return ${after};\n }\n`).filter((h) => h.key === 'return-shape-changed');
+  const renamed = change('{ id: u.id, name: u.name }', '{ id: u.id, fullName: u.name }');
+  assert.equal(renamed.length, 1);
+  assert.equal(renamed[0].title, 'What toUser returns changed shape');
+  assert.equal(renamed[0].line, 2);
+  assert.equal(renamed[0].detail, 'Fields no longer returned: name');
+  assert.equal(change('{ id: u.id, name: u.name }', '{ user: { id: u.id, name: u.name } }').length, 1);
+  assert.equal(change('{ id: u.id, name: u.name }', '{ name: u.name.trim(), id: u.id }').length, 0);
+  assert.equal(change('u.id', 'u.name').length, 0);
 });

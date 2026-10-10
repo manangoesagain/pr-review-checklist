@@ -84,7 +84,7 @@ test('full demo review: the planted false claim is hidden, the five planted issu
   assert.deepEqual(review.hidden.map((h) => h.removedBy), ['line check', 'line check', 'line check', 'claim check']);
   const tags = Object.fromEntries(items.map((i) => [i.title, i.origin === 'ai' ? `ai:${i.confidence}` : i.origin]));
   assert.equal(tags['Search text goes straight into SQL'], 'agree');
-  assert.equal(tags['User response shape changed'], 'ai:confirmed');
+  assert.equal(tags['User response shape changed'], 'agree');
   assert.equal(tags['Search returns every matching order'], 'ai:unconfirmed');
   assert.equal(tags['Code changed, but no tests did'], 'fact');
   assert.ok(review.areas.every((a) => a.status === 'issues'));

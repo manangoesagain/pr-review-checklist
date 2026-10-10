@@ -33,9 +33,9 @@ test('scoring: the saved AI reply finds all five planted issues and nothing on t
   assert.equal(clean.falseAlarms, 0);
 });
 
-test('basic mode misses the breaking change: the AI is what finds it', async () => {
+test('basic mode finds all five planted issues from facts and patterns alone', async () => {
   const demo = scoreDemo(await runReview({ sample: 'demo' }));
-  assert.deepEqual(Object.entries(demo.found).filter(([, found]) => !found).map(([id]) => id), ['breaking']);
+  assert.deepEqual(Object.entries(demo.found).filter(([, found]) => !found).map(([id]) => id), []);
 });
 
 test('the report adds up runs and lists false alarms by name', async () => {

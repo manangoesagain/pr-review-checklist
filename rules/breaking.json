@@ -44,6 +44,18 @@
       "why": "Code that calls {1} the old way may now pass the wrong values, or fail.",
       "fix": "Check every call of {1}, or give new inputs a default so old calls still work.",
       "comment": "The inputs of {1} changed. Have all the places that call it been updated?"
+    },
+    {
+      "id": "return-shape-changed",
+      "title": "What {1} returns changed shape",
+      "severity": "worth-asking",
+      "match": "changed-return-shape",
+      "patterns": {
+        "js": "^\\s*return\\s*(\\{.*\\})\\s*;?\\s*$"
+      },
+      "why": "Code or apps that read the old fields will get nothing, or an error.",
+      "fix": "Keep the old fields for now, or update everything that reads them (and say so in the PR).",
+      "comment": "What {1} returns has a different shape now. Is anything still reading the old fields?"
     }
   ]
 }
