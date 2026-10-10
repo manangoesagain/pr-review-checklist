@@ -123,3 +123,16 @@ test('an AI item on a hint\'s line replaces it and is tagged as agreeing', () =>
   assert.equal(merged[0].title, 'T');
   assert.equal(merged[1], fact);
 });
+
+test('an AI item a few lines from a hint on the same problem replaces it; one further away doesn\'t', () => {
+  const base = { area: 'performance', file: 'src/orders.ts', side: 'R', origin: 'ai', severity: 'worth-asking' };
+  const hint = { area: 'performance', file: 'src/orders.ts', side: 'R', line: 24, origin: 'hint', key: 'call-in-loop', severity: 'worth-asking', title: 'hint' };
+  const near = mergeItems([{ ...base, line: 23, title: 'N+1 query' }], [hint]);
+  assert.equal(near.length, 1);
+  assert.equal(near[0].origin, 'agree');
+  assert.equal(near[0].title, 'N+1 query');
+  const far = mergeItems([{ ...base, line: 30, title: 'Other' }], [{ ...hint }]);
+  assert.equal(far.length, 2);
+  const otherArea = mergeItems([{ ...base, area: 'security', line: 24, title: 'Other' }], [{ ...hint }]);
+  assert.equal(otherArea.length, 2);
+});

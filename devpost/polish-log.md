@@ -29,6 +29,7 @@ text from a PR or the AI never becomes HTML, and the Markdown export neutralises
 | 13 | Pop-up, phones | A long file path pushed the pop-up sideways at 375 px. | fixed |
 | 14 | Both | Several greys were below the 4.5:1 contrast minimum (the small note under the link box was 2.3:1). | fixed |
 | 15 | Pop-up | Screen readers would read the seconds counter out every second, but never the step names. | fixed |
+| 16 | Checklist | On the PC's real AI run, the loop with a query inside it was listed twice under Performance: the AI cited the loop line, the pattern flagged the query line one below, and they were only merged on the exact same line. | fixed |
 
 ### Fixes
 
@@ -58,6 +59,8 @@ text from a PR or the AI never becomes HTML, and the Markdown export neutralises
     `#858e9b` (5.6:1), `--muted` `#a2abb7`, and the small label uses the light blue.
 15. `public/app.html`: the seconds counter is hidden from screen readers and a hidden status
     line announces each step.
+16. `lib/verify.js`: a pattern hint now merges with the closest AI item in the same area and file
+    up to 3 lines away (`NEAR_LINES`), not only on the exact line. New test in `test/verify.test.js`.
 
 Checked together: `npm test` (137 pass, 8 new tests for items 1, 2, 4, 5, 10 and 12), the
 reviewers' Playwright scripts re-run (focus, Tab, Retry, overlap, long paths, contrast, no
